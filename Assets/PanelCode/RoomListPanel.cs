@@ -233,5 +233,6 @@ public class RoomListPanel : PanelBase
         PanelMgr.instance.OpenPanel<TipPanel>("", "登出成功！");
         PanelMgr.instance.OpenPanel<LoginPanel>("", "");
         NetMgr.srvConn.Close();
+        PanelMgr.instance.ClosePanel("RoomListPanel");
     }
 }

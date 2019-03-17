@@ -46,9 +46,11 @@ public class PanelMgr : MonoBehaviour
         //已经打开
         string name = typeof(T).ToString();
         if (dict.ContainsKey(name))
+        {
             return;
-        //面板脚本
+        }
         PanelBase panel = canvas.AddComponent<T>();
+        //面板脚本
         panel.Init(args);
         dict.Add(name, panel);
         //加载皮肤
