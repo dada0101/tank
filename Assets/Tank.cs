@@ -578,7 +578,7 @@ public class Tank : MonoBehaviour
     {
         if (ctrlType != CtrlType.player)
             return;
-        // DrawSight();
+        DrawSight();
         DrawHp();
         DrawKillUI();
     }
