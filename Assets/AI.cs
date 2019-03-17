@@ -223,22 +223,22 @@ public class AI : MonoBehaviour
         }
     }
 
-    ////是否发射炮弹
-    //public bool IsShoot()
-    //{
-    //    if (target == null)
-    //        return false;
+    //是否发射炮弹
+    public bool IsShoot()
+    {
+        if (target == null)
+            return false;
 
-    //    //获取目标角度差
-    //    //float turretRoll = tank.turret.eulerAngles.y;
-    //    float angle = turretRoll - GetTurretTarget().y;
-    //    if (angle < 0) angle += 360;
-    //    //30度以内发射炮弹
-    //    if (angle < 30 || angle > 330)
-    //        return true;
-    //    else
-    //        return false;
-    //}
+        //获取目标角度差
+        float turretRoll = tank.turret.eulerAngles.y;
+        float angle = turretRoll - GetTurretTarget().y;
+        if (angle < 0) angle += 360;
+        //30度以内发射炮弹
+        if (angle < 30 || angle > 330)
+            return true;
+        else
+            return false;
+    }
 
     //----------------行走状态机----------------------
 
@@ -261,47 +261,47 @@ public class AI : MonoBehaviour
         }
     }
 
-    ////获取转向角
-    //public float GetSteering()
-    //{
-    //    if (tank == null)
-    //        return 0;
+    //获取转向角
+    public float GetSteering()
+    {
+        if (tank == null)
+            return 0;
 
-    //    Vector3 itp = transform.InverseTransformPoint(path.waypoint);
-    //    if (itp.x > path.deviation / 5)
-    //        return tank.maxSteeringAngle;
-    //    else if (itp.x < -path.deviation / 5)
-    //        return -tank.maxSteeringAngle;
-    //    else
-    //        return 0;
-    //}
+        Vector3 itp = transform.InverseTransformPoint(path.waypoint);
+        if (itp.x > path.deviation / 5)
+            return tank.maxSteeringAngle;
+        else if (itp.x < -path.deviation / 5)
+            return -tank.maxSteeringAngle;
+        else
+            return 0;
+    }
 
-    ////获取马力
-    //public float GetMotor()
-    //{
+    //获取马力
+    public float GetMotor()
+    {
 
-    //    if (tank == null)
-    //        return 0;
+        if (tank == null)
+            return 0;
 
-    //    Vector3 itp = transform.InverseTransformPoint(path.waypoint);
-    //    float x = itp.x;
-    //    float z = itp.z;
-    //    float r = 6;
+        Vector3 itp = transform.InverseTransformPoint(path.waypoint);
+        float x = itp.x;
+        float z = itp.z;
+        float r = 6;
 
-    //    if (z < 0 && Mathf.Abs(x) < -z && Mathf.Abs(x) < r)
-    //        return -tank.maxMotorTorque;
-    //    else
-    //        return tank.maxMotorTorque;
-    //}
+        if (z < 0 && Mathf.Abs(x) < -z && Mathf.Abs(x) < r)
+            return -tank.maxMotorTorque;
+        else
+            return tank.maxMotorTorque;
+    }
 
-    ////获取刹车
-    //public float GetBrakeTorque()
-    //{
-    //    if (path.isFinish)
-    //        return tank.maxMotorTorque;
-    //    else
-    //        return 0;
-    //}
+    //获取刹车
+    public float GetBrakeTorque()
+    {
+        if (path.isFinish)
+            return tank.maxMotorTorque;
+        else
+            return 0;
+    }
 
 }
 

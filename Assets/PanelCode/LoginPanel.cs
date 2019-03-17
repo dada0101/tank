@@ -66,12 +66,10 @@ public class LoginPanel : PanelBase
         //发送
         ProtocolBytes protocol = new ProtocolBytes();
         protocol.AddString("Login");
-        //protocol.AddString(idInput.text);
-        //protocol.AddString(pwInput.text);
-        protocol.AddString("444");
-        protocol.AddString("444");
+        protocol.AddString(idInput.text);
+        protocol.AddString(pwInput.text);
         //protocol.AddString(klInput.text);
-        protocol.AddString("XinJaystudio");
+        protocol.AddString("xinjaystudio");
         Debug.Log("发送 " + protocol.GetDesc());
         NetMgr.srvConn.Send(protocol, OnLoginBack);
 
