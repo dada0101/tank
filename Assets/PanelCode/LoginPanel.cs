@@ -70,7 +70,8 @@ public class LoginPanel : PanelBase
         //protocol.AddString(pwInput.text);
         protocol.AddString("444");
         protocol.AddString("444");
-        protocol.AddString(klInput.text);
+        //protocol.AddString(klInput.text);
+        protocol.AddString("XinJaystudio");
         Debug.Log("发送 " + protocol.GetDesc());
         NetMgr.srvConn.Send(protocol, OnLoginBack);
 
