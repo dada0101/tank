@@ -9,6 +9,8 @@ public class RoomPanel : PanelBase
     private List<Transform> prefabs = new List<Transform>();
     private Button closeBtn;
     private Button startBtn;
+    private Button prepareBtn;
+    private int isPrepare;
 
     #region 生命周期
     /// <summary> 初始化 </summary>
@@ -17,6 +19,7 @@ public class RoomPanel : PanelBase
         base.Init(args);
         skinPath = "RoomPanel";
         layer = PanelLayer.Panel;
+        isPrepare = 0;
     }
 
     public override void OnShowing()
@@ -32,15 +35,19 @@ public class RoomPanel : PanelBase
         }
         closeBtn = skinTrans.Find("CloseBtn").GetComponent<Button>();
         startBtn = skinTrans.Find("StartBtn").GetComponent<Button>();
+        prepareBtn = skinTrans.Find("PrepareBtn").GetComponent<Button>();
         //按钮事件
         closeBtn.onClick.AddListener(OnCloseClick);
         startBtn.onClick.AddListener(OnStartClick);
+        prepareBtn.onClick.AddListener(OnPrepareClick);
         //监听
         NetMgr.srvConn.msgDist.AddListener("GetRoomInfo", RecvGetRoomInfo);
         NetMgr.srvConn.msgDist.AddListener("Fight", RecvFight);
         //发送查询
         ProtocolBytes protocol = new ProtocolBytes();
         protocol.AddString("GetRoomInfo");
+        // 发送未准备信息
+        protocol.AddString("Cancel");
         NetMgr.srvConn.Send(protocol);
 
 
@@ -71,6 +78,7 @@ public class RoomPanel : PanelBase
             int win = proto.GetInt(start, ref start);
             int fail = proto.GetInt(start, ref start);
             int isOwner = proto.GetInt(start, ref start);
+            int isPrepare = proto.GetInt(start, ref start);
             //信息处理
             Transform trans = prefabs[i];
             Text text = trans.Find("Text").GetComponent<Text>();
@@ -145,10 +153,34 @@ public class RoomPanel : PanelBase
         //处理
         if (ret != 0)
         {
-            PanelMgr.instance.OpenPanel<TipPanel>("", "开始游戏失败！两队至少都需要一名玩家，只有队长可以开始战斗！");
+            PanelMgr.instance.OpenPanel<TipPanel>("", "开始游戏失败！两队至少都需要一名玩家，只有队长可以开始战斗,所有人都需要准备！");
         }
     }
 
+    public void OnPrepareClick()
+    {
+        ProtocolBytes protocol = new ProtocolBytes();
+        if(isPrepare == 1)
+            protocol.AddString("Cancel");
+        else
+            protocol.AddString("Prepare");
+        NetMgr.srvConn.Send(protocol, OnPrepareBack);
+    }
+
+    public void OnPrepareBack(ProtocolBase protocol)
+    {
+        //获取数值
+        ProtocolBytes proto = (ProtocolBytes)protocol;
+        int start = 0;
+        string protoName = proto.GetString(start, ref start);
+        isPrepare = proto.GetInt(start, ref start);
+
+        Text text = prepareBtn.transform.Find("Text").GetComponent<Text>();
+        if (isPrepare == 1)
+            text.text = "取消准备";
+        else
+            text.text = "准备";
+    }
 
     public void RecvFight(ProtocolBase protocol)
     {

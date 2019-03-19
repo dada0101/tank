@@ -56,7 +56,7 @@ public class LoginPanel : PanelBase
         {
             //string host = addressInput.text; //"127.0.0.1";// "202.114.41.165";
             //int port = int.Parse(portInput.text); //18085;// 8085;
-            string host = "47.102.217.164"; //"127.0.0.1";// "202.114.41.165";
+            string host = "10.246.34.154"; //"127.0.0.1";// "202.114.41.165";
             int port = 18085; //18085;// 8085;
             NetMgr.srvConn.proto = new ProtocolBytes();
             if (!NetMgr.srvConn.Connect(host, port))
