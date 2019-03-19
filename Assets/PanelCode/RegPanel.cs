@@ -6,7 +6,7 @@ public class RegPanel : PanelBase
 {
     private InputField idInput;
     private InputField pwInput;
-    private InputField addressInput, portInput, klInput;
+    private InputField addressInput, portInput;
     private Button regBtn;
     private Button closeBtn;
     private InputField repInput;
@@ -28,7 +28,7 @@ public class RegPanel : PanelBase
         pwInput = skinTrans.Find("PWInput").GetComponent<InputField>();
         addressInput = skinTrans.Find("AddressInput").GetComponent<InputField>();
         portInput = skinTrans.Find("PortInput").GetComponent<InputField>();
-        klInput = skinTrans.Find("KlInput").GetComponent<InputField>();
+        //klInput = skinTrans.Find("KlInput").GetComponent<InputField>();
 
         regBtn = skinTrans.Find("RegBtn").GetComponent<Button>();
         closeBtn = skinTrans.Find("CloseBtn").GetComponent<Button>();
@@ -63,8 +63,10 @@ public class RegPanel : PanelBase
         //连接服务器
         if (NetMgr.srvConn.status != Connection.Status.Connected)
         {
-            string host = addressInput.text;
-            int port = int.Parse(portInput.text);
+            //string host = addressInput.text;
+            //int port = int.Parse(portInput.text);
+            string host = "47.102.217.164";
+            int port = 18085;
             NetMgr.srvConn.proto = new ProtocolBytes();
             if (!NetMgr.srvConn.Connect(host, port))
                 PanelMgr.instance.OpenPanel<TipPanel>("", "连接服务器失败!");
@@ -74,7 +76,7 @@ public class RegPanel : PanelBase
         protocol.AddString("Register");
         protocol.AddString(idInput.text);
         protocol.AddString(pwInput.text);
-        protocol.AddString(klInput.text);
+        protocol.AddString("xinjaystudio");
         Debug.Log("发送 " + protocol.GetDesc());
         NetMgr.srvConn.Send(protocol, OnRegBack);
     }
