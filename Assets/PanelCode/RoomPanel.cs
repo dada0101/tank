@@ -46,19 +46,13 @@ public class RoomPanel : PanelBase
         //发送查询
         ProtocolBytes protocol = new ProtocolBytes();
         protocol.AddString("GetRoomInfo");
-        // 发送未准备信息
-        protocol.AddString("Cancel");
         NetMgr.srvConn.Send(protocol);
-
-
     }
 
     public override void OnClosing()
     {
-
         NetMgr.srvConn.msgDist.DelListener("GetRoomInfo", RecvGetRoomInfo);
         NetMgr.srvConn.msgDist.DelListener("Fight", RecvFight);
-
     }
 
 
@@ -78,7 +72,6 @@ public class RoomPanel : PanelBase
             int win = proto.GetInt(start, ref start);
             int fail = proto.GetInt(start, ref start);
             int isOwner = proto.GetInt(start, ref start);
-            int isPrepare = proto.GetInt(start, ref start);
             //信息处理
             Transform trans = prefabs[i];
             Text text = trans.Find("Text").GetComponent<Text>();
