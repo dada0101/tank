@@ -9,8 +9,10 @@ public class RoomPanel : PanelBase
     private List<Transform> prefabs = new List<Transform>();
     private Button closeBtn;
     private Button startOrPreBtn;
+    private Button joinRedTeamBtn;
+    private Button joinBlueTeamBtn;
     private int isPrepare;
-
+    public enum Team{ RED= 1,BLUE=2};
     #region 生命周期
     /// <summary> 初始化 </summary>
     public override void Init(params object[] args)
@@ -34,8 +36,12 @@ public class RoomPanel : PanelBase
         }
         closeBtn = skinTrans.Find("CloseBtn").GetComponent<Button>(); 
         startOrPreBtn = skinTrans.Find("StartOrPreBtn").GetComponent<Button>();
+        joinRedTeamBtn = skinTrans.Find("JoinRedTeamBtn").GetComponent<Button>();
+        joinBlueTeamBtn = skinTrans.Find("JoinBlueTeamBtn").GetComponent<Button>();
         //按钮事件
         closeBtn.onClick.AddListener(OnCloseClick);
+        joinRedTeamBtn.onClick.AddListener(() => { OnJoinTeamClick(Team.RED); });
+        joinBlueTeamBtn.onClick.AddListener(() => { OnJoinTeamClick(Team.BLUE); });
         //监听
         NetMgr.srvConn.msgDist.AddListener("GetRoomInfo", RecvGetRoomInfo);
         NetMgr.srvConn.msgDist.AddListener("Fight", RecvFight);
@@ -50,7 +56,6 @@ public class RoomPanel : PanelBase
         NetMgr.srvConn.msgDist.DelListener("GetRoomInfo", RecvGetRoomInfo);
         NetMgr.srvConn.msgDist.DelListener("Fight", RecvFight);
     }
-
 
     public void RecvGetRoomInfo(ProtocolBase protocol)
     {
@@ -85,7 +90,6 @@ public class RoomPanel : PanelBase
                 str += "【房主】";
                 if (id == GameMgr.instance.id)
                     isMyselfOwner = true;
-                
             }
             else if (isPrepare == 1)
                 str += " 已准备";
@@ -193,6 +197,18 @@ public class RoomPanel : PanelBase
             text.text = "取消准备";
         else
             text.text = "准备";
+    }
+
+    public void OnJoinTeamClick(Team team)
+    {
+        ProtocolBytes protocol = new ProtocolBytes();
+        protocol.AddString("SwitchTeam");
+        protocol.AddInt((int)team);
+        NetMgr.srvConn.Send(protocol, OnJoinTeamBack);
+    }
+
+    public void OnJoinTeamBack(ProtocolBase protocol)
+    {
     }
 
     public void RecvFight(ProtocolBase protocol)
