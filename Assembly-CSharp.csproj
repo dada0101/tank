@@ -78,6 +78,8 @@
     <Compile Include="Assets\core\Root.cs" />
     <Compile Include="Assets\core\Tank2.cs" />
     <Compile Include="Assets\GameMgr.cs" />
+    <Compile Include="Assets\HUD.cs" />
+    <Compile Include="Assets\HUDText.cs" />
     <Compile Include="Assets\MultiBattle.cs" />
     <Compile Include="Assets\PanelCode\InfoPanel.cs" />
     <Compile Include="Assets\PanelCode\LoginPanel.cs" />
