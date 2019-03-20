@@ -230,7 +230,7 @@ public class RoomListPanel : PanelBase
     //登出返回
     public void OnCloseBack(ProtocolBase protocol)
     {
-        PanelMgr.instance.OpenPanel<TipPanel>("", "登出成功！");
+        PanelMgr.instance.OpenPanel<TipPanel>("", "退出成功！");
         PanelMgr.instance.OpenPanel<LoginPanel>("", "");
         NetMgr.srvConn.Close();
         PanelMgr.instance.ClosePanel("RoomListPanel");

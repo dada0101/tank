@@ -1,12 +1,14 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
 public class Tank : MonoBehaviour
 {
     //炮塔炮管轮子履带
     public Transform turret;
     public Transform gun;
+    public Transform HUDText;
     private Transform wheels;
     private Transform tracks;
     //炮塔旋转速度
@@ -257,6 +259,8 @@ public class Tank : MonoBehaviour
     {
         //获取炮塔
         turret = transform.Find("turret");
+        //获取canvas
+        HUDText = transform.Find("HUDText"); 
         //获取炮管
         gun = turret.Find("gun");
         //获取轮子
@@ -452,6 +456,7 @@ public class Tank : MonoBehaviour
         if (hp > 0)
         {
             hp -= att;
+            transform.Find("Canvas2").GetComponent<HUDText>().HUD((int)att);
         }
         if (hp <= 0)
         {
@@ -654,6 +659,7 @@ public class Tank : MonoBehaviour
         if (hp > 0)
         {
             hp -= att;
+            HUDText.GetComponent<HUDText>().HUD((int)att);
             Debug.Log("MsgHit " + "  hp:" + hp + " att:" + att);
         }
         //坦克被击毁
