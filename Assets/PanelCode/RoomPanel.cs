@@ -8,8 +8,7 @@ public class RoomPanel : PanelBase
 {
     private List<Transform> prefabs = new List<Transform>();
     private Button closeBtn;
-    private Button startBtn;
-    private Button prepareBtn;
+    private Button startOrPreBtn;
     private int isPrepare;
 
     #region 生命周期
@@ -33,13 +32,10 @@ public class RoomPanel : PanelBase
             Transform prefab = skinTrans.Find(name);
             prefabs.Add(prefab);
         }
-        closeBtn = skinTrans.Find("CloseBtn").GetComponent<Button>();
-        startBtn = skinTrans.Find("StartBtn").GetComponent<Button>();
-        prepareBtn = skinTrans.Find("PrepareBtn").GetComponent<Button>();
+        closeBtn = skinTrans.Find("CloseBtn").GetComponent<Button>(); 
+        startOrPreBtn = skinTrans.Find("StartOrPreBtn").GetComponent<Button>();
         //按钮事件
         closeBtn.onClick.AddListener(OnCloseClick);
-        startBtn.onClick.AddListener(OnStartClick);
-        prepareBtn.onClick.AddListener(OnPrepareClick);
         //监听
         NetMgr.srvConn.msgDist.AddListener("GetRoomInfo", RecvGetRoomInfo);
         NetMgr.srvConn.msgDist.AddListener("Fight", RecvFight);
@@ -65,6 +61,7 @@ public class RoomPanel : PanelBase
         int count = proto.GetInt(start, ref start);
         //每个处理
         int i = 0;
+        bool isMyselfOwner = false;
         for (i = 0; i < count; i++)
         {
             string id = proto.GetString(start, ref start);
@@ -72,6 +69,7 @@ public class RoomPanel : PanelBase
             int win = proto.GetInt(start, ref start);
             int fail = proto.GetInt(start, ref start);
             int isOwner = proto.GetInt(start, ref start);
+            int isPrepare = proto.GetInt(start, ref start);
             //信息处理
             Transform trans = prefabs[i];
             Text text = trans.Find("Text").GetComponent<Text>();
@@ -81,8 +79,19 @@ public class RoomPanel : PanelBase
             str += "失败：" + fail.ToString() + "\r\n";
             if (id == GameMgr.instance.id)
                 str += "【我自己】";
+
             if (isOwner == 1)
+            {
                 str += "【房主】";
+                if (id == GameMgr.instance.id)
+                    isMyselfOwner = true;
+                
+            }
+            else if (isPrepare == 1)
+                str += " 已准备";
+            else
+                str += " 未准备";
+            
             text.text = str;
 
             if (team == 1)
@@ -98,6 +107,19 @@ public class RoomPanel : PanelBase
             text.text = "【等待玩家】";
             trans.GetComponent<Image>().color = Color.gray;
         }
+
+        Text startText = startOrPreBtn.transform.Find("Text").GetComponent<Text>();
+        startOrPreBtn.onClick.RemoveAllListeners();
+        if (isMyselfOwner)
+        {
+            startOrPreBtn.onClick.AddListener(OnStartClick);
+            startText.text = "开始战斗";
+        }
+        else
+        {
+            startOrPreBtn.onClick.AddListener(OnPrepareClick);
+            startText.text = "准备";
+        }
     }
 
     public void OnCloseClick()
@@ -106,7 +128,6 @@ public class RoomPanel : PanelBase
         protocol.AddString("LeaveRoom");
         NetMgr.srvConn.Send(protocol, OnCloseBack);
     }
-
 
     public void OnCloseBack(ProtocolBase protocol)
     {
@@ -127,7 +148,6 @@ public class RoomPanel : PanelBase
             PanelMgr.instance.OpenPanel<TipPanel>("", "退出失败！");
         }
     }
-
 
     public void OnStartClick()
     {
@@ -168,7 +188,7 @@ public class RoomPanel : PanelBase
         string protoName = proto.GetString(start, ref start);
         isPrepare = proto.GetInt(start, ref start);
 
-        Text text = prepareBtn.transform.Find("Text").GetComponent<Text>();
+        Text text = startOrPreBtn.transform.Find("Text").GetComponent<Text>();
         if (isPrepare == 1)
             text.text = "取消准备";
         else
