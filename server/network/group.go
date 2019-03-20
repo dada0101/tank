@@ -77,6 +77,7 @@ func(group *Group)Broadcast(msg []byte) {
 		if a.Status() == AGENT_STATE_CLOSED {
 			continue
 		}
+		// TODO 可能有问题
 		if err := a.Send(msg); err != nil {
 			log.Println(err)
 		}

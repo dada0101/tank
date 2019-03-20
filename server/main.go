@@ -3,8 +3,7 @@ package main
 import (
 	"TankDemo/game"
 	"TankDemo/network"
-	"TankDemo/rpc"
-	"fmt"
+	"TankDemo/proto"
 	"log"
 	"net"
 	"reflect"
@@ -15,39 +14,49 @@ func close(a *network.Agent) {
 	game.GetGLobby().DelPlayer(a)
 }
 
-func main() {
-	network.CloseHandle = close
-	rpc.GetGRpcMap().Init()
-	rpc.GetGRpcMap().AddActionHandle("HeatBeat", []reflect.Kind{},game.HeartBeat)
-	rpc.GetGRpcMap().AddActionHandle("Login", []reflect.Kind{reflect.String, reflect.String,}, game.Login)
-	rpc.GetGRpcMap().AddActionHandle("Register", []reflect.Kind{reflect.String, reflect.String,}, game.Register)
-	rpc.GetGRpcMap().AddActionHandle("Logout", []reflect.Kind{}, game.LogoutEx)
-	rpc.GetGRpcMap().AddActionHandle("StartFight", []reflect.Kind{}, game.StartFight )
-	rpc.GetGRpcMap().AddActionHandle("Shooting", []reflect.Kind{
+func Init() {
+	proto.GetGRpcMap().Init()
+	proto.GetGRpcMap().AddActionHandle("HeatBeat", []reflect.Kind{},game.HeartBeat)
+	proto.GetGRpcMap().AddActionHandle("Login", []reflect.Kind{reflect.String, reflect.String,}, game.Login)
+	proto.GetGRpcMap().AddActionHandle("Register", []reflect.Kind{reflect.String, reflect.String,}, game.Register)
+	proto.GetGRpcMap().AddActionHandle("Logout", []reflect.Kind{}, game.LogoutEx)
+	proto.GetGRpcMap().AddActionHandle("Prepare", []reflect.Kind{}, game.Prepare )
+	proto.GetGRpcMap().AddActionHandle("Cancel", []reflect.Kind{}, game.Cancel )
+	proto.GetGRpcMap().AddActionHandle("StartFight", []reflect.Kind{}, game.StartFight )
+	proto.GetGRpcMap().AddActionHandle("Shooting", []reflect.Kind{
 		reflect.Float32, reflect.Float32, reflect.Float32, reflect.Float32, reflect.Float32, reflect.Float32,
 	}, game.Shooting)
-	rpc.GetGRpcMap().AddActionHandle( "UpdateUnitInfo", []reflect.Kind{
+	proto.GetGRpcMap().AddActionHandle( "UpdateUnitInfo", []reflect.Kind{
 		reflect.Float32, reflect.Float32, reflect.Float32, reflect.Float32, reflect.Float32, reflect.Float32, reflect.Float32, reflect.Float32,
 	}, game.UpdateUnitInfo)
-	rpc.GetGRpcMap().AddActionHandle( "Hit", []reflect.Kind{reflect.String, reflect.Float32}, game.Hit)
-	rpc.GetGRpcMap().AddActionHandle( "GetScore", []reflect.Kind{}, game.GetScore)
-	rpc.GetGRpcMap().AddActionHandle( "AddScore", []reflect.Kind{}, game.AddScore)
-	rpc.GetGRpcMap().AddActionHandle( "GetList", []reflect.Kind{}, game.GetList)
-	rpc.GetGRpcMap().AddActionHandle( "UpdateInfo", []reflect.Kind{}, game.UpdateInfo)
-	rpc.GetGRpcMap().AddActionHandle( "GetAchieve", []reflect.Kind{}, game.GetAchieve)
-	rpc.GetGRpcMap().AddActionHandle( "GetRoomList", []reflect.Kind{}, game.GetRoomList)
-	rpc.GetGRpcMap().AddActionHandle( "CreateRoom", []reflect.Kind{}, game.CreateRoom)
-	rpc.GetGRpcMap().AddActionHandle( "EnterRoom", []reflect.Kind{reflect.Int32, }, game.EnterRoom)
-	rpc.GetGRpcMap().AddActionHandle( "GetRoomInfo", []reflect.Kind{}, game.GetRoomInfo)
-	rpc.GetGRpcMap().AddActionHandle( "LeaveRoom", []reflect.Kind{}, game.LeaveRoom)
-//	rpc.GetGRpcMap().AddActionHandle( "")
+	proto.GetGRpcMap().AddActionHandle( "Hit", []reflect.Kind{reflect.String, reflect.Float32}, game.Hit)
+	proto.GetGRpcMap().AddActionHandle( "GetScore", []reflect.Kind{}, game.GetScore)
+	proto.GetGRpcMap().AddActionHandle( "AddScore", []reflect.Kind{}, game.AddScore)
+	proto.GetGRpcMap().AddActionHandle( "GetList", []reflect.Kind{}, game.GetList)
+	proto.GetGRpcMap().AddActionHandle( "UpdateInfo", []reflect.Kind{}, game.UpdateInfo)
+	proto.GetGRpcMap().AddActionHandle( "GetAchieve", []reflect.Kind{}, game.GetAchieve)
+	proto.GetGRpcMap().AddActionHandle( "GetRoomList", []reflect.Kind{}, game.GetRoomList)
+	proto.GetGRpcMap().AddActionHandle( "CreateRoom", []reflect.Kind{}, game.CreateRoom)
+	proto.GetGRpcMap().AddActionHandle( "EnterRoom", []reflect.Kind{reflect.Int32, }, game.EnterRoom)
+	proto.GetGRpcMap().AddActionHandle( "GetRoomInfo", []reflect.Kind{}, game.GetRoomInfo)
+	proto.GetGRpcMap().AddActionHandle( "LeaveRoom", []reflect.Kind{}, game.LeaveRoom)
+	proto.GetGRpcMap().AddActionHandle( "SwitchTeam", []reflect.Kind{reflect.Int32, }, game.SwitchTeam)
 
+}
 
-	_, find := rpc.GetGRpcMap().GetMethodDescriptor("Register")
-	fmt.Println(find)
-
+func main() {
+	Init()
 	game.InitGLobby()
+	network.CloseHandle = close
 
+	//logFile, err := os.OpenFile("log.txt", os.O_CREATE | os.O_WRONLY | os.O_APPEND, 0666)
+	//if err != nil {
+	//	log.Fatalln("log file can not to open!! ", err)
+	//}
+	//log.SetOutput(logFile)
+	//defer func () {
+	///	logFile.Close()
+	//} ()
 	tcpConn, err := net.Listen("tcp", "0.0.0.0:18085")
 	if err != nil {
 		log.Println(err)
@@ -62,7 +71,7 @@ func main() {
 		}
 		a := network.NewAgent(int32(uid), conn)
 		uid++
-		fmt.Println(network.DumpAgent(a))
 		a.Run(game.Process)
 	}
+
 }
