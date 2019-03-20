@@ -3,7 +3,7 @@ package game
 import (
 	"TankDemo/db"
 	"TankDemo/network"
-	"TankDemo/rpc"
+	"TankDemo/proto"
 	"log"
 	"reflect"
 	"sync"
@@ -26,10 +26,18 @@ type Lobby struct {
 	mu sync.Mutex
 	agentToPlayer map[*network.Agent]*Player
 	uidToPlayer map[int]*Player
-	rpcMap rpc.NameMapping
 	roomList []*Room
 //	chLeavePlayer chan *Player
 }
+
+func (l *Lobby)Broadcast() {
+	for agent, _ := range l.agentToPlayer {
+		if err := agent.Send(l.GetRoomList().GetBuf()); err != nil {
+			log.Println(err)
+		}
+	}
+}
+
 
 func(lobby *Lobby)CreateRoom(p* Player) {
 	room := NewRoom(network.NewGroup(0))
@@ -56,7 +64,6 @@ func(lobby *Lobby)LeaveRoom(p *Player) {
 				break
 			}
 		}
-		log.Println("room-list . remove a null room....")
 		copy(lobby.roomList[idx:], lobby.roomList[idx+1:])
 		lobby.roomList = lobby.roomList[:len(lobby.roomList) -1]
 		lobby.mu.Unlock()
@@ -64,8 +71,8 @@ func(lobby *Lobby)LeaveRoom(p *Player) {
 	log.Println(lobby.roomList)
 }
 
-func(lobby *Lobby)GetRoomList() *rpc.ProtocolBytes{
-	p := rpc.NewProtocolBytes([]byte{0, 0, 0, 0})
+func(lobby *Lobby)GetRoomList() *proto.ProtocolBytes{
+	p := proto.NewProtocolBytes([]byte{0, 0, 0, 0})
 	p.EncodeString("GetRoomList")
 	p.EncodeInt32(int32(len(lobby.roomList)))
 	for _, room := range lobby.roomList {
@@ -114,15 +121,31 @@ func(l *Lobby)DelPlayer(a *network.Agent) {
 }
 
 // process the heartbeat
-func HeartBeat(a *network.Agent, params []interface{}) (*rpc.ProtocolBytes, bool){
+func HeartBeat(a *network.Agent, params []interface{}) (*proto.ProtocolBytes, bool){
 	a.NoHBCntZero()
 	return nil, true
 }
 
-func Register(a *network.Agent, params []interface{}) (*rpc.ProtocolBytes, bool){
+type HeartBeatPackage struct {
+}
+func(hbp *HeartBeatPackage)Init([]byte) {
+
+}
+func(hbp *HeartBeatPackage)Decode() bool {
+	return true
+}
+func(hbp *HeartBeatPackage)Encode() bool {
+	return true
+}
+func(hbp *HeartBeatPackage)Exec(a *network.Agent) {
+	a.NoHBCntZero()
+}
+
+
+func Register(a *network.Agent, params []interface{}) (*proto.ProtocolBytes, bool){
 	 name := params[0].(string)
 	 pwd := params[1].(string)
-	pro := rpc.NewProtocolBytes([]byte{0, 0, 0, 0})
+	pro := proto.NewProtocolBytes([]byte{0, 0, 0, 0})
 	pro.EncodeString("Register")
 	uid, can := db.Register(name, pwd)
 	if ! can {
@@ -138,10 +161,20 @@ func Register(a *network.Agent, params []interface{}) (*rpc.ProtocolBytes, bool)
 	 return pro, false
 }
 
-func Login(a *network.Agent, params []interface{})(*rpc.ProtocolBytes, bool) {
+type RegisterPackage struct {
+	name, pwd string
+
+}
+
+func(rp *RegisterPackage)Init([]byte) {
+
+}
+
+
+func Login(a *network.Agent, params []interface{})(*proto.ProtocolBytes, bool) {
 	name := params[0].(string)
 	pwd := params[1].(string)
-	pro := rpc.NewProtocolBytes([]byte{0, 0, 0, 0})
+	pro := proto.NewProtocolBytes([]byte{0, 0, 0, 0})
 	pro.EncodeString("Login")
 	uid, check := db.CheckPwd(name, pwd)
 	if ! check {	// 验证失败
@@ -170,8 +203,8 @@ func Login(a *network.Agent, params []interface{})(*rpc.ProtocolBytes, bool) {
 
 
 
-func LogoutEx(a *network.Agent, params []interface{}) (*rpc.ProtocolBytes, bool) {
-	pb := rpc.NewProtocolBytes([]byte{0, 0, 0, 0})
+func LogoutEx(a *network.Agent, params []interface{}) (*proto.ProtocolBytes, bool) {
+	pb := proto.NewProtocolBytes([]byte{0, 0, 0, 0})
 	pb.EncodeString("Logout")
 	pb.EncodeInt32(0)
 
@@ -194,11 +227,13 @@ func LogoutEx(a *network.Agent, params []interface{}) (*rpc.ProtocolBytes, bool)
 
 
 func Process(a *network.Agent, bytes []byte) ([]byte,bool) {
-	pro := rpc.NewProtocolBytes(bytes)
+	pro := proto.NewProtocolBytes(bytes)
 	lenOfMsg := pro.DecodeInt32()
-	lenOfMsg += 0		//
+	if lenOfMsg > int32(len(bytes)) - 4 {
+		log.Println("something error, because the buffer is too short")
+	}
 	methodName := pro.DecodeString()
-	md, found := rpc.GetGRpcMap().GetMethodDescriptor(methodName)
+	md, found := proto.GetGRpcMap().GetMethodDescriptor(methodName)
 	if !found {
 		log.Println("don't find this method, please try other.",a , methodName)
 		return []byte{1,1,1,1,1}, false
@@ -218,48 +253,13 @@ func Process(a *network.Agent, bytes []byte) ([]byte,bool) {
 		}
 	}
 
-	if methodName == "Hit" {
-		log.Println(methodName, params)
-	}
-
-	log.Println(bytes)
 	log.Println(methodName, params)
-	var m = md.GetMethod().(func(a *network.Agent, params []interface{})(*rpc.ProtocolBytes, bool))
+	var m = md.GetMethod().(func(a *network.Agent, params []interface{})(*proto.ProtocolBytes, bool))
 	pb, isEmpty := m(a, params)
 	if isEmpty {
 		return nil, isEmpty
 	}
 
-
-	n, p := parse(pb)
-	log.Println("send : ", n, p)
-
 	return pb.GetBuf(), isEmpty
-}
-
-func parse(pro *rpc.ProtocolBytes)(string, []interface{}) {
-	lenOfMsg := pro.DecodeInt32()
-	lenOfMsg += 0		//
-	methodName := pro.DecodeString()
-	md, found := rpc.GetGRpcMap().GetMethodDescriptor(methodName)
-	if !found {
-		log.Println("don't find this method, please try other.", methodName)
-		return "", nil
-	}
-	paramCnt := md.NumIn()
-	var params []interface{}
-	for i := 0; i < paramCnt; i++ {
-		switch md.In(i) {
-		case reflect.Int32:
-			params = append(params, pro.DecodeInt32())
-		case reflect.Float32:
-			params = append(params, pro.DecodeFloat32())
-		case reflect.String:
-			params = append(params, pro.DecodeString())
-		default:
-			log.Println("error: unknown method param type",md.In(i))
-		}
-	}
-	return methodName, params
 }
 

@@ -139,10 +139,32 @@ func (a *Agent) Server(processing func(* Agent, []byte)([]byte, bool)) {
 	log.Println(a.id, "\t agent server process finished")
 }
 
+func (a *Agent) ServerEx(processing func(* Agent, []byte)([]byte, bool)) {
+	buf := make([]byte, 2048)
+	for {
+		n, err := a.conn.Read(buf)
+		if err != nil {
+			log.Println("can not read buffer from this agent and agent will close. don't worry, it's not a bug :)")
+			a.chDie <- struct{}{}
+			break
+		}
+		if processing == nil {
+			log.Println(buf[:n])
+			continue
+		}
+		outBuf, isEmpty := processing(a, buf[:n])
+		if !isEmpty {
+			a.sendBuf <- outBuf
+		}
+	}
+	log.Println(a.id, "\t agent server process finished")
+}
+
+
+
 
 func (a *Agent) Write(heartbeat time.Duration) {
 	ticker := time.NewTicker(heartbeat)
-	var hbd []byte = []byte("hbd-debug")
 	defer func() {
 		ticker.Stop()
 		close(a.sendBuf)
@@ -155,7 +177,6 @@ func (a *Agent) Write(heartbeat time.Duration) {
 		 		if a.GetHBCnt() > 4 {
 		 			a.chDie <- struct{}{}
 				}
-		 		a.sendBuf <- hbd
 				a.IncNoHBCnt()
 		 	case data := <-a.sendBuf:
 		 		_,err := a.conn.Write(data)
@@ -171,5 +192,5 @@ func (a *Agent) Write(heartbeat time.Duration) {
 
 func (a *Agent) Run(processing func(*Agent, []byte)([]byte, bool)) {
 	go a.Server(processing)
-	go a.Write(3000 * time.Second)
+	go a.Write(30 * time.Second)
 }

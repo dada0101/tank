@@ -3,7 +3,7 @@ package game
 import (
 	"TankDemo/db"
 	"TankDemo/network"
-	"TankDemo/rpc"
+	"TankDemo/proto"
 	"fmt"
 	"log"
 )
@@ -17,6 +17,7 @@ const (
 	NONE = 0
 	ROOM = 1
 	FIGHT = 2
+	PREPARE = 3
 )
 
 type TankData struct {
@@ -76,7 +77,7 @@ func(p *Player) KickOff() {
 
 }
 
-func(player *Player) Send(p * rpc.ProtocolBytes) {
+func(player *Player) Send(p * proto.ProtocolBytes) {
 	player.agent.Send(p.GetBuf())
 }
 

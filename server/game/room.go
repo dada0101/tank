@@ -2,7 +2,7 @@ package game
 
 import (
 	"TankDemo/network"
-	"TankDemo/rpc"
+	"TankDemo/proto"
 	"fmt"
 	"log"
 	"sync"
@@ -127,12 +127,12 @@ func(r *Room)SwitchOwner() {
 	}
 }
 
-func(r *Room)Broadcast(p *rpc.ProtocolBytes) {
+func(r *Room)Broadcast(p *proto.ProtocolBytes) {
 	r.group.Broadcast(p.GetBuf())
 }
 
-func(r *Room)GetRoomInfo() *rpc.ProtocolBytes{
-	p := rpc.NewProtocolBytes([]byte{0,0,0,0})
+func(r *Room)GetRoomInfo() *proto.ProtocolBytes{
+	p := proto.NewProtocolBytes([]byte{0,0,0,0})
 	p.EncodeString("GetRoomInfo")
 	p.EncodeInt32(int32(r.playerCnt))
 	for i := 0; i < ROOM_SIZE; i++ {
@@ -146,6 +146,14 @@ func(r *Room)GetRoomInfo() *rpc.ProtocolBytes{
 			} else {
 				p.EncodeInt32(int32(0))
 			}
+
+			// 追加 player 是否准备好信息
+			if r.players[i].extraPayerData.status == PREPARE {
+				p.EncodeInt32(1)
+			} else {
+				p.EncodeInt32(0)
+			}
+
 		}
 	}
 	p.SetLength()
@@ -168,20 +176,33 @@ func(r *Room)cnts() (int, int){
 
 
 func(r *Room)CanStart() bool{
-	if r.status == FIGHT {
+	if r.status == ROME_STATUS_FIGHT {
 		return false
 	}
 	cnt1,cnt2 := r.cnts()
 	if cnt1 < 1 || cnt2 < 1 {
 		return false
 	}
+
+	for _, player := range r.players {
+		if player == nil {
+			continue
+		}
+		if player.extraPayerData.isOwner {
+			continue
+		}
+		// 如果有玩家没有准备好，或者他不是房主，那么就返回false
+		if player.extraPayerData.status != PREPARE  {
+			return false
+		}
+	}
 	return true
 }
 
 func(r *Room)StartFight() {
-	p := rpc.NewProtocolBytes([]byte{0, 0, 0, 0})
+	p := proto.NewProtocolBytes([]byte{0, 0, 0, 0})
 	p.EncodeString("Fight")
-	r.status = FIGHT
+	r.status = ROME_STATUS_FIGHT
 	//TODO i dont know whats means of it
 	teamPos1, teamPos2 := 1, 1
 	r.mu.Lock()
@@ -209,7 +230,7 @@ func(r *Room)StartFight() {
 
 
 func(r *Room)IsWin() int {
-	if r.status != FIGHT {
+	if r.status != ROME_STATUS_FIGHT {
 		return NOONE
 	}
 	cnt1, cnt2 := 0, 0
@@ -253,16 +274,17 @@ func(r *Room)UpdateWin() {
 	}
 	r.mu.Unlock()
 	r.status = ROOM_STATUS_PREPARE
-	p := rpc.NewProtocolBytes([]byte{0, 0, 0, 0})
+	p := proto.NewProtocolBytes([]byte{0, 0, 0, 0})
 	p.EncodeString("Result")
 	p.EncodeInt32(int32(whichTeam))
 	p.SetLength()
 	r.Broadcast(p)
+	GetGLobby().Broadcast()
 }
 
 func(r *Room) ExitFight(player *Player) {
 	player.extraPayerData.tankData.hp = -1
-	p := rpc.NewProtocolBytes([]byte{0, 0, 0, 0})
+	p := proto.NewProtocolBytes([]byte{0, 0, 0, 0})
 	p.EncodeString("Hit")
 	p.EncodeString(player.playerData.name)
 	p.EncodeString(player.playerData.name)
