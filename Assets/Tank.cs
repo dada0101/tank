@@ -20,6 +20,13 @@ public class Tank : MonoBehaviour
     private float maxRoll = 10f;
     private float minRoll = -4f;
 
+    //地图宽度与高度
+    private float planeWidth;
+    private float planeHeight;
+    //地形面板
+    private GameObject plane;
+    //玩家标记图片
+    public Texture2D playerMark;
 
     //轮轴
     public List<AxleInfo> axleInfos;
@@ -75,6 +82,8 @@ public class Tank : MonoBehaviour
     //生命指示条素材
     public Texture2D hpBarBg;
     public Texture2D hpBar;
+    //小地图素材
+    public Texture2D miniMap;
 
     //击杀提示图标
     public Texture2D killUI;
@@ -259,6 +268,7 @@ public class Tank : MonoBehaviour
     {
         //获取炮塔
         turret = transform.Find("turret");
+        plane = GameObject.Find("Plane");
         //获取canvas
         HUDText = transform.Find("HUDText"); 
         //获取炮管
@@ -279,6 +289,9 @@ public class Tank : MonoBehaviour
             ai = gameObject.AddComponent<AI>();
             ai.tank = this;
         }
+
+        planeWidth = plane.GetComponent<MeshFilter>().mesh.bounds.size.x * plane.transform.localScale.x;
+        planeHeight = plane.GetComponent<MeshFilter>().mesh.bounds.size.z * plane.transform.localScale.z;
     }
 
     //每帧执行一次
@@ -566,6 +579,28 @@ public class Tank : MonoBehaviour
         GUI.Label(textRect, text);
     }
 
+    //绘制小地图
+    public void DrawMiniMap()
+    {
+        //小地图
+        Rect mapRect = new Rect(Screen.width - miniMap.width, 0, miniMap.width, miniMap.height);
+        GUI.DrawTexture(mapRect, miniMap);
+
+        //计算玩家再小地图的位置
+        float markX = (410 - transform.position.x) / planeWidth * miniMap.width;
+        float markY = (transform.position.z - 75) / planeHeight * miniMap.height;
+        //计算玩家再屏幕上的位置
+        float playerX = Screen.width - miniMap.width + markX - playerMark.height / 2;
+        float playerY = markY - playerMark.height / 2;
+
+        float angle = transform.eulerAngles.y - 90;
+        GUIUtility.RotateAroundPivot(angle, new Vector2(playerX, playerY));
+
+        //绘制玩家
+        Rect markRect = new Rect(playerX, playerY, playerMark.width, playerMark.height);
+        GUI.DrawTexture(markRect, playerMark);
+    }
+
     //绘制击杀图标
     private void DrawKillUI()
     {
@@ -585,6 +620,7 @@ public class Tank : MonoBehaviour
             return;
         DrawSight();
         DrawHp();
+        DrawMiniMap();
         DrawKillUI();
     }
 
