@@ -201,6 +201,12 @@ public class RoomPanel : PanelBase
 
     public void OnJoinTeamClick(Team team)
     {
+        if(isPrepare == 1)
+        {
+            PanelMgr.instance.OpenPanel<TipPanel>("", "请取消准备后更换队伍");
+            return;
+        }
+
         ProtocolBytes protocol = new ProtocolBytes();
         protocol.AddString("SwitchTeam");
         protocol.AddInt((int)team);
