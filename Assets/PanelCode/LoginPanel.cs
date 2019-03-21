@@ -6,7 +6,6 @@ public class LoginPanel : PanelBase
 {
     private InputField idInput;
     private InputField pwInput;
-    private InputField addressInput, portInput;
     private Button loginBtn;
     private Button regBtn;
 
@@ -25,8 +24,6 @@ public class LoginPanel : PanelBase
         Transform skinTrans = skin.transform;
         idInput = skinTrans.Find("IDInput").GetComponent<InputField>();
         pwInput = skinTrans.Find("PWInput").GetComponent<InputField>();
-        addressInput = skinTrans.Find("AddressInput").GetComponent<InputField>();
-        portInput = skinTrans.Find("PortInput").GetComponent<InputField>();
         loginBtn = skinTrans.Find("LoginBtn").GetComponent<Button>();
         regBtn = skinTrans.Find("RegBtn").GetComponent<Button>();
 
@@ -54,10 +51,8 @@ public class LoginPanel : PanelBase
         //连接服务器
         if (NetMgr.srvConn.status != Connection.Status.Connected)
         {
-            //string host = addressInput.text; //"127.0.0.1";// "202.114.41.165";
-            //int port = int.Parse(portInput.text); //18085;// 8085;
-            string host = "10.246.34.154"; //"127.0.0.1";// "202.114.41.165";
-            int port = 18085; //18085;// 8085;
+            string host = "47.102.217.164"; //"127.0.0.1";// "202.114.41.165";
+            int port = 18085; //18085;
             NetMgr.srvConn.proto = new ProtocolBytes();
             if (!NetMgr.srvConn.Connect(host, port))
                 PanelMgr.instance.OpenPanel<TipPanel>("", "连接服务器失败!");
