@@ -87,6 +87,7 @@
     <Compile Include="Assets\PanelCode\RegPanel.cs" />
     <Compile Include="Assets\PanelCode\RoomListPanel.cs" />
     <Compile Include="Assets\PanelCode\RoomPanel.cs" />
+    <Compile Include="Assets\PanelCode\TalkPanel.cs" />
     <Compile Include="Assets\PanelCode\TipPanel.cs" />
     <Compile Include="Assets\PanelCode\TitlePanel.cs" />
     <Compile Include="Assets\PanelCode\WinPanel.cs" />

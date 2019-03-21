@@ -132,6 +132,7 @@ d1fd76cc5b00c6996481a566d69c5f64 Assembly-CSharp.dll:.AI
 09b3f20816da7a241b5917025bebf705 Assembly-CSharp.dll:.HUDText
 4fd8bf02e3089425d3502e26c44ba31a Unity.TextMeshPro.dll:TMPro.TextContainer
 9c30aaf5b2417dc83fdaec91dfa97dbb Assembly-CSharp.dll:.LoginPanel
+9c30aaf5b2417dc83fdaec91dfa97dbb Assembly-CSharp.dll:.TalkPanel
 e6ae40841db498b6e673877ac45ad208 UnityEngine.Networking.dll:UnityEngine.Networking.NetworkAnimator
 71bb6a6b6c8f052f948db64c7dd3ca4f UnityEngine.Networking.dll:UnityEngine.Networking.NetworkBehaviour
 1dcb82730d983b77cec736c6ef19f814 UnityEngine.Networking.dll:UnityEngine.Networking.NetworkDiscovery

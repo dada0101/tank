@@ -221,6 +221,7 @@ public class RoomPanel : PanelBase
     {
         ProtocolBytes proto = (ProtocolBytes)protocol;
         MultiBattle.instance.StartBattle(proto);
+        PanelMgr.instance.OpenPanel<TalkPanel>("");
         Close();
     }
 
