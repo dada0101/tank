@@ -74,7 +74,10 @@ MonoBehaviour:
   turret: {fileID: 0}
   gun: {fileID: 0}
   HUDText: {fileID: 0}
-  playerMark: {fileID: 2800000, guid: eb73df2138f139943aa8e35919b798c9, type: 3}
+  blueTeamMark: {fileID: 2800000, guid: eb73df2138f139943aa8e35919b798c9, type: 3}
+  redTeamMark: {fileID: 2800000, guid: d0122776e87cc264fbf2478a20a5c70d, type: 3}
+  bluePlayerTeamMark: {fileID: 2800000, guid: cb58325dd7a4654449748cc7889494c2, type: 3}
+  redPlayerTeamMark: {fileID: 2800000, guid: 8321b1b58f9ba36499c2aa6da6f37ece, type: 3}
   axleInfos:
   - leftWheel: {fileID: 472}
     rightWheel: {fileID: 466}

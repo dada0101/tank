@@ -25,9 +25,12 @@ public class Tank : MonoBehaviour
     private float planeHeight;
     //地形面板
     private GameObject plane;
-    //玩家标记图片
-    public Texture2D playerMark;
-
+    //红队蓝队队友标记图片
+    public Texture2D blueTeamMark;
+    public Texture2D redTeamMark;
+    //红队蓝队玩家标记图片
+    public Texture2D bluePlayerTeamMark;
+    public Texture2D redPlayerTeamMark;
     //轮轴
     public List<AxleInfo> axleInfos;
     //马力/最大马力
@@ -289,7 +292,7 @@ public class Tank : MonoBehaviour
             ai = gameObject.AddComponent<AI>();
             ai.tank = this;
         }
-
+        //计算地图大小
         planeWidth = plane.GetComponent<MeshFilter>().mesh.bounds.size.x * plane.transform.localScale.x;
         planeHeight = plane.GetComponent<MeshFilter>().mesh.bounds.size.z * plane.transform.localScale.z;
     }
@@ -585,20 +588,38 @@ public class Tank : MonoBehaviour
         //小地图
         Rect mapRect = new Rect(Screen.width - miniMap.width, 0, miniMap.width, miniMap.height);
         GUI.DrawTexture(mapRect, miniMap);
+        //获取所有坦克的位置
+        foreach(BattleTank bt in MultiBattle.instance.list.Values)
+        {
+            //计算玩家再小地图的位置
+            float markX = (410 - bt.tank.transform.position.x) / planeWidth * miniMap.width;
+            float markY = (bt.tank.transform.position.z - 75) / planeHeight * miniMap.height;
+            //计算玩家再屏幕上的位置
+            float playerX = Screen.width - miniMap.width + markX - redTeamMark.height / 2;
+            float playerY = markY - redTeamMark.height / 2;
+            //计算旋转角度
+            float angle = bt.tank.transform.eulerAngles.y - 90;
+            GUIUtility.RotateAroundPivot(angle, new Vector2(playerX, playerY));
 
-        //计算玩家再小地图的位置
-        float markX = (410 - transform.position.x) / planeWidth * miniMap.width;
-        float markY = (transform.position.z - 75) / planeHeight * miniMap.height;
-        //计算玩家再屏幕上的位置
-        float playerX = Screen.width - miniMap.width + markX - playerMark.height / 2;
-        float playerY = markY - playerMark.height / 2;
-
-        float angle = transform.eulerAngles.y - 90;
-        GUIUtility.RotateAroundPivot(angle, new Vector2(playerX, playerY));
-
-        //绘制玩家
-        Rect markRect = new Rect(playerX, playerY, playerMark.width, playerMark.height);
-        GUI.DrawTexture(markRect, playerMark);
+            Rect markRect = new Rect(playerX, playerY, redTeamMark.width, redTeamMark.height);
+            //绘制玩家
+            if (bt.camp == 1)
+            {
+                if(bt.tank.name == GameMgr.instance.id)
+                    GUI.DrawTexture(markRect, redPlayerTeamMark);
+                else
+                    GUI.DrawTexture(markRect, redTeamMark);
+            }
+            else
+            {
+                if (bt.tank.name == GameMgr.instance.id)
+                    GUI.DrawTexture(markRect, bluePlayerTeamMark);
+                else
+                    GUI.DrawTexture(markRect, blueTeamMark);
+            }
+            //还原旋转角度
+            GUIUtility.RotateAroundPivot(-angle, new Vector2(playerX, playerY));
+        }
     }
 
     //绘制击杀图标
@@ -612,7 +633,6 @@ public class Tank : MonoBehaviour
         }
     }
 
-
     //绘图
     void OnGUI()
     {
@@ -623,9 +643,6 @@ public class Tank : MonoBehaviour
         DrawMiniMap();
         DrawKillUI();
     }
-
-
-
 
     public void SendUnitInfo()
     {

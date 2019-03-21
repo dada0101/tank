@@ -1030,55 +1030,55 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 266, guid: 5d64401b3be82474986266f1ec3cdb2f, type: 3}
+    - target: {fileID: 267, guid: 5d64401b3be82474986266f1ec3cdb2f, type: 3}
       propertyPath: m_LocalPosition.x
       value: 205.00363
       objectReference: {fileID: 0}
-    - target: {fileID: 266, guid: 5d64401b3be82474986266f1ec3cdb2f, type: 3}
+    - target: {fileID: 267, guid: 5d64401b3be82474986266f1ec3cdb2f, type: 3}
       propertyPath: m_LocalPosition.y
       value: 0.5109565
       objectReference: {fileID: 0}
-    - target: {fileID: 266, guid: 5d64401b3be82474986266f1ec3cdb2f, type: 3}
+    - target: {fileID: 267, guid: 5d64401b3be82474986266f1ec3cdb2f, type: 3}
       propertyPath: m_LocalPosition.z
       value: 126.56876
       objectReference: {fileID: 0}
-    - target: {fileID: 266, guid: 5d64401b3be82474986266f1ec3cdb2f, type: 3}
+    - target: {fileID: 267, guid: 5d64401b3be82474986266f1ec3cdb2f, type: 3}
       propertyPath: m_LocalRotation.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 266, guid: 5d64401b3be82474986266f1ec3cdb2f, type: 3}
+    - target: {fileID: 267, guid: 5d64401b3be82474986266f1ec3cdb2f, type: 3}
       propertyPath: m_LocalRotation.y
       value: 0.69622606
       objectReference: {fileID: 0}
-    - target: {fileID: 266, guid: 5d64401b3be82474986266f1ec3cdb2f, type: 3}
+    - target: {fileID: 267, guid: 5d64401b3be82474986266f1ec3cdb2f, type: 3}
       propertyPath: m_LocalRotation.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 266, guid: 5d64401b3be82474986266f1ec3cdb2f, type: 3}
+    - target: {fileID: 267, guid: 5d64401b3be82474986266f1ec3cdb2f, type: 3}
       propertyPath: m_LocalRotation.w
       value: 0.7178226
       objectReference: {fileID: 0}
-    - target: {fileID: 266, guid: 5d64401b3be82474986266f1ec3cdb2f, type: 3}
+    - target: {fileID: 267, guid: 5d64401b3be82474986266f1ec3cdb2f, type: 3}
       propertyPath: m_RootOrder
       value: 13
       objectReference: {fileID: 0}
-    - target: {fileID: 266, guid: 5d64401b3be82474986266f1ec3cdb2f, type: 3}
+    - target: {fileID: 267, guid: 5d64401b3be82474986266f1ec3cdb2f, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 266, guid: 5d64401b3be82474986266f1ec3cdb2f, type: 3}
+    - target: {fileID: 267, guid: 5d64401b3be82474986266f1ec3cdb2f, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
       value: 88.25001
       objectReference: {fileID: 0}
-    - target: {fileID: 266, guid: 5d64401b3be82474986266f1ec3cdb2f, type: 3}
+    - target: {fileID: 267, guid: 5d64401b3be82474986266f1ec3cdb2f, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 107, guid: 5d64401b3be82474986266f1ec3cdb2f, type: 3}
+    - target: {fileID: 108, guid: 5d64401b3be82474986266f1ec3cdb2f, type: 3}
       propertyPath: m_Name
       value: TankCamp2
       objectReference: {fileID: 0}
-    - target: {fileID: 107, guid: 5d64401b3be82474986266f1ec3cdb2f, type: 3}
+    - target: {fileID: 108, guid: 5d64401b3be82474986266f1ec3cdb2f, type: 3}
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
@@ -2713,7 +2713,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tankPrefabs:
   - {fileID: 99, guid: 93468920cd30dde4a9d7c55faba85650, type: 3}
-  - {fileID: 107, guid: 5d64401b3be82474986266f1ec3cdb2f, type: 3}
+  - {fileID: 108, guid: 5d64401b3be82474986266f1ec3cdb2f, type: 3}
 --- !u!1 &2094932650
 GameObject:
   m_ObjectHideFlags: 0
