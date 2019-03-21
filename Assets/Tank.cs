@@ -11,6 +11,9 @@ public class Tank : MonoBehaviour
     public Transform HUDText;
     private Transform wheels;
     private Transform tracks;
+
+
+
     //炮塔旋转速度
     private float turretRotSpeed = 0.5f;
     //炮塔炮管目标角度
@@ -344,6 +347,7 @@ public class Tank : MonoBehaviour
         TurretRoll();
         //马达音效
         MotorSound();
+
     }
 
     //炮塔旋转
