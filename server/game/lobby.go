@@ -4,29 +4,19 @@ import (
 	"TankDemo/db"
 	"TankDemo/network"
 	"TankDemo/proto"
+	"TankDemo/proto2"
 	"log"
 	"reflect"
 	"sync"
 )
-/*
-type Player struct {
-
-}*/
-
-
-type Scene struct {
-	players []*Player
-	rule Rule
-}
-type Rule struct {
-
-}
 
 type Lobby struct {
 	mu sync.Mutex
 	agentToPlayer map[*network.Agent]*Player
-	uidToPlayer map[int]*Player
 	roomList []*Room
+
+	nameToPlayer map[string]*Player
+
 //	chLeavePlayer chan *Player
 }
 
@@ -40,7 +30,7 @@ func (l *Lobby)Broadcast() {
 
 
 func(lobby *Lobby)CreateRoom(p* Player) {
-	room := NewRoom(network.NewGroup(0))
+	room := NewRoom()
 	room.AddPlayer(p)
 	room.SwitchOwner()
 	p.extraPayerData.room = room
@@ -79,7 +69,6 @@ func(lobby *Lobby)GetRoomList() *proto.ProtocolBytes{
 		p.EncodeInt32(int32(room.playerCnt))
 		p.EncodeInt32(int32(room.status))
 	}
-	p.SetLength()
 	log.Println("lobby.roomlist: ", lobby.roomList)
 	return p
 }
@@ -92,7 +81,7 @@ var (
 func InitGLobby() {
 	gLobby = new(Lobby)
 	gLobby.agentToPlayer = make(map[*network.Agent]*Player)
-	gLobby.uidToPlayer = make(map[int]*Player)
+	gLobby.nameToPlayer = make(map[string]*Player)
 	gLobby.roomList = make([]*Room, 0)
 
 }
@@ -105,16 +94,18 @@ func(l* Lobby)FindPlayer(a *network.Agent)(p *Player, ok bool) {
 	p,ok = l.agentToPlayer[a]
 	return
 }
-func(l *Lobby)FindPlayerByUid(uid int)(p *Player, ok bool ){
-	p, ok = l.uidToPlayer[uid]
+
+
+func(l *Lobby)FindPlayerByName(name string)(p *Player, ok bool) {
+	p, ok = l.nameToPlayer[name]
 	return
 }
 
 func(l *Lobby)DelPlayer(a *network.Agent) {
 	player, ok := l.FindPlayer(a)
 	if ok {
-		uid := player.id
-		delete(l.uidToPlayer, int(uid))
+		name := player.playerData.name
+		delete(l.nameToPlayer, name)
 		delete(l.agentToPlayer, a)
 		player.Logout()
 	}
@@ -128,17 +119,15 @@ func HeartBeat(a *network.Agent, params []interface{}) (*proto.ProtocolBytes, bo
 
 type HeartBeatPackage struct {
 }
-func(hbp *HeartBeatPackage)Init([]byte) {
-
-}
-func(hbp *HeartBeatPackage)Decode() bool {
+func(hbp *HeartBeatPackage)Read(stream *proto2.BufferStream) bool {
 	return true
 }
-func(hbp *HeartBeatPackage)Encode() bool {
+func(hbp *HeartBeatPackage)Write(stream *proto2.BufferStream) bool {
 	return true
 }
-func(hbp *HeartBeatPackage)Exec(a *network.Agent) {
+func(hbp *HeartBeatPackage)Exec(a *network.Agent)  *proto2.BufferStream {
 	a.NoHBCntZero()
+	return nil
 }
 
 
@@ -150,57 +139,121 @@ func Register(a *network.Agent, params []interface{}) (*proto.ProtocolBytes, boo
 	uid, can := db.Register(name, pwd)
 	if ! can {
 		pro.EncodeInt32(-1)
-		pro.SetLength()
 		return pro, false
 	}
 	 pro.EncodeInt32(0)
-	 pro.SetLength()
 	 a.SetUid(int32(uid))
 	log.Println("uid", uid)
 	db.CreateUserData(uid)
 	 return pro, false
 }
+const (
+	FAILED = -1
+	SUCCEED = 0
+)
 
 type RegisterPackage struct {
 	name, pwd string
-
 }
 
-func(rp *RegisterPackage)Init([]byte) {
-
+func(rp *RegisterPackage)Read(stream *proto2.BufferStream) bool {
+	rp.name = stream.DecodeString()
+	rp.pwd = stream.DecodeString()
+	return true
 }
 
+func(rp *RegisterPackage)Write(stream *proto2.BufferStream) bool {
+	stream.EncodeString(rp.name)
+	stream.EncodeString(rp.pwd)
+	return true
+}
+
+func(rp *RegisterPackage)Exec(a *network.Agent) *proto2.BufferStream {
+	 bs := proto2.NewBufferStream([]byte{0, 0, 0, 0})
+	 bs.EncodeString("Register")
+	uid, can := db.Register(rp.name, rp.pwd)
+	if ! can {
+		bs.EncodeInt32(FAILED)
+		return bs
+	}
+	bs.EncodeInt32(SUCCEED)
+	a.SetUid(int32(uid))
+	log.Println("uid", uid)
+	db.CreateUserData(uid)
+	return bs
+}
 
 func Login(a *network.Agent, params []interface{})(*proto.ProtocolBytes, bool) {
 	name := params[0].(string)
 	pwd := params[1].(string)
 	pro := proto.NewProtocolBytes([]byte{0, 0, 0, 0})
 	pro.EncodeString("Login")
-	uid, check := db.CheckPwd(name, pwd)
+	uid, check, loginCnt := db.CheckPwd(name, pwd)
 	if ! check {	// 验证失败
 		pro.EncodeInt32(-1)
-		pro.SetLength()
 		return pro,false
 	}
-	_, ok := GetGLobby().FindPlayerByUid(uid)
+	_, ok := GetGLobby().FindPlayerByName(name)
 	if ok {		// 如果重复登陆，拒绝
 		pro.EncodeInt32(-1)
-		pro.SetLength()
 		return pro,false
 	}
 	score, win, fail, err :=db.GetUserData(uid)
 	if err != nil {
 		log.Println("some error about login")
 	}
-	player := NewPlayer(name, uid, score, win, fail, a)
+	player := NewPlayer(name, uid, score, win, fail, a, nil, loginCnt)
 	GetGLobby().agentToPlayer[a] = player
-	GetGLobby().uidToPlayer[uid] = player
+	GetGLobby().nameToPlayer[name] = player
 
 	pro.EncodeInt32(0)
-	pro.SetLength()
+	if loginCnt == 0 {
+		pro.EncodeInt32(int32(1))
+	}	else {
+		pro.EncodeInt32(0)
+	}
+
 	return pro, false
 }
 
+type LoginPackage struct {
+	name, pwd string
+}
+
+func(lp *LoginPackage)Read(stream *proto2.BufferStream) bool {
+	lp.name = stream.DecodeString()
+	lp.pwd = stream.DecodeString()
+	return true
+}
+func(lp *LoginPackage)Write(stream *proto2.BufferStream) bool {
+	stream.EncodeString(lp.name)
+	stream.EncodeString(lp.pwd)
+	return true
+}
+func(lp *LoginPackage)Exec(a *network.Agent) *proto2.BufferStream {
+	bf := proto2.NewBufferStream([]byte{0, 0, 0, 0})
+	bf.EncodeString("Login")
+	uid, check, _ := db.CheckPwd(lp.name, lp.pwd)
+	if ! check {	// 验证失败
+		bf.EncodeInt32(FAILED)
+		return bf
+	}
+	_, ok := GetGLobby().FindPlayerByName(lp.name)
+	if ok {		// 如果重复登陆，拒绝
+		bf.EncodeInt32(FAILED)
+		return bf
+	}
+	score, win, fail, err :=db.GetUserData(uid)
+	if err != nil {
+		log.Println("some error about login")
+	}
+	player := NewPlayer(lp.name, uid, score, win, fail, a, nil, 0)
+	GetGLobby().agentToPlayer[a] = player
+	GetGLobby().nameToPlayer[lp.name] = player
+
+	bf.EncodeInt32(SUCCEED)
+	return bf
+}
 
 
 func LogoutEx(a *network.Agent, params []interface{}) (*proto.ProtocolBytes, bool) {
@@ -214,15 +267,39 @@ func LogoutEx(a *network.Agent, params []interface{}) (*proto.ProtocolBytes, boo
 		defer func() {
 			a.Close()
 		}()
-		pb.SetLength()
 		return pb, true
 	}
-	uid := player.id
-	delete(GetGLobby().uidToPlayer, int(uid))
+	delete(GetGLobby().nameToPlayer, player.playerData.name)
 	delete(GetGLobby().agentToPlayer, a)
 	player.Logout()
-	pb.SetLength()
 	return pb, false
+}
+
+type LogoutPackage struct {
+}
+
+func(lp *LogoutPackage)Read(stream *proto2.BufferStream) bool {
+	return true
+}
+func(lp *LogoutPackage)Write(stream *proto2.BufferStream) bool {
+	return true
+}
+func(lp *LogoutPackage)Exec(a *network.Agent) *proto2.BufferStream {
+	bs := proto2.NewBufferStream([]byte{0, 0, 0, 0})
+	bs.EncodeString("Logout")
+	bs.EncodeInt32(SUCCEED)
+	player, ok := GetGLobby().agentToPlayer[a]
+	if !ok {
+		log.Println("this agent dont map a player and it want to logout", a)
+		defer func() {
+			a.Close()
+		}()
+		return bs
+	}
+	delete(GetGLobby().nameToPlayer, player.playerData.name)
+	delete(GetGLobby().agentToPlayer, a)
+	player.Logout()
+	return bs
 }
 
 

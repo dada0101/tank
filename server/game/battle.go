@@ -16,7 +16,6 @@ func Prepare(a *network.Agent, params []interface{}) (p *proto.ProtocolBytes, is
 	p = proto.NewProtocolBytes([]byte{0, 0, 0, 0})
 	p.EncodeString("Prepare")
 	p.EncodeInt32(1)
-	p.SetLength()
 	room := player.extraPayerData.room
 	room.Broadcast(room.GetRoomInfo())
 	return p, false
@@ -32,12 +31,10 @@ func Cancel(a *network.Agent, params []interface{}) (p *proto.ProtocolBytes, isE
 	p = proto.NewProtocolBytes([]byte{0, 0, 0, 0})
 	p.EncodeString("Cancel")
 	p.EncodeInt32(0)
-	p.SetLength()
 	room := player.extraPayerData.room
 	room.Broadcast(room.GetRoomInfo())
 	return p, false
 }
-
 
 func StartFight(a *network.Agent, params []interface{}) (p *proto.ProtocolBytes, isEmpty bool){
 	p = proto.NewProtocolBytes([]byte{0, 0, 0, 0})
@@ -49,18 +46,15 @@ func StartFight(a *network.Agent, params []interface{}) (p *proto.ProtocolBytes,
 	}
 	if player.extraPayerData.isOwner == false {
 		p.EncodeInt32(-1)
-		p.SetLength()
 		return
 	}
 
 	room := player.extraPayerData.room
 	if room.CanStart() == false {
 		p.EncodeInt32(-1)
-		p.SetLength()
 		return
 	}
 	p.EncodeInt32(0)
-	p.SetLength()
 	log.Println("start - fight succeed")
 	room.StartFight()
 	GetGLobby().Broadcast()
@@ -85,7 +79,6 @@ func UpdateUnitInfo(a *network.Agent, params []interface{}) (p *proto.ProtocolBy
 	for _, val := range params {
 		p.EncodeFloat32(val.(float32))
 	}
-	p.SetLength()
 	player.extraPayerData.room.Broadcast(p)
 	return nil, true
 }
@@ -105,7 +98,6 @@ func Shooting(a *network.Agent, params []interface{}) (p *proto.ProtocolBytes, i
 	for _, val := range params {
 		p.EncodeFloat32(val.(float32))
 	}
-	p.SetLength()
 	player.extraPayerData.room.Broadcast(p)
 	log.Println("shooting will quit...")
 	return nil, true
@@ -136,7 +128,6 @@ func Hit(a *network.Agent, params []interface{}) (p *proto.ProtocolBytes, isEmpt
 	p.EncodeString(player.playerData.name)
 	p.EncodeString(enemy.playerData.name)
 	p.EncodeFloat32(params[1].(float32))
-	p.SetLength()
 	room.Broadcast(p)
 	room.UpdateWin()
 	log.Println("hit will quit...")
@@ -198,7 +189,6 @@ func GetAchieve(a *network.Agent, params []interface{}) (p *proto.ProtocolBytes,
 	p.EncodeString("GetAchieve")
 	p.EncodeInt32(int32(player.playerData.win))
 	p.EncodeInt32(int32(player.playerData.fail))
-	p.SetLength()
 	return p,false
 }
 
@@ -220,7 +210,6 @@ func SwitchTeam(a *network.Agent, params []interface{}) (p *proto.ProtocolBytes,
 		room.Broadcast(room.GetRoomInfo())
 	}
 	p.EncodeInt32(int32(res))
-	p.SetLength()
 	return p, false
 }
 
@@ -238,14 +227,12 @@ func CreateRoom(a *network.Agent, params []interface{}) (p *proto.ProtocolBytes,
 	p.EncodeString("CreateRoom")
 	if player.extraPayerData.status != NONE {
 		p.EncodeInt32(-1)
-		p.SetLength()
 		return p,false
 	}
 	GetGLobby().CreateRoom(player)
 	GetGLobby().Broadcast()
 
 	p.EncodeInt32(0)
-	p.SetLength()
 	return p,false
 }
 
@@ -260,18 +247,26 @@ func EnterRoom(a *network.Agent, params []interface{}) (p *proto.ProtocolBytes, 
 	p.EncodeString("EnterRoom")
 	if room.status != ROOM_STATUS_PREPARE {
 		p.EncodeInt32(-1)
-		p.SetLength()
+/*
+		for _, p := range room.players {
+			if p == nil {
+				continue
+			}
+			if p.extraPayerData.isOwner {
+				p.AddSpectator(a)
+				break
+			}
+		}
+*/
 		return p, false
 	}
 	if room.AddPlayer(player) {
 		p.EncodeInt32(0)
-		p.SetLength()
 		log.Println("enter room :", RoomDump(room))
 		room.Broadcast(room.GetRoomInfo())
 		return p, false
 	} else {
 		p.EncodeInt32(-1)
-		p.SetLength()
 		return p, false
 	}
 }
@@ -284,7 +279,6 @@ func GetRoomInfo(a *network.Agent, params []interface{}) (p *proto.ProtocolBytes
 	}
 	room := player.extraPayerData.room
 	p = room.GetRoomInfo()
-	p.SetLength()
 	return p, false
 }
 
@@ -294,7 +288,7 @@ func LeaveRoom(a *network.Agent, params []interface{}) (p *proto.ProtocolBytes, 
 	player, _ := GetGLobby().FindPlayer(a)		// forget the ok
 	if player.extraPayerData.status != ROOM {
 		p.EncodeInt32(-1)
-		p.SetLength()
+		log.Println("the player : ", player.playerData.name, " status is not ROOM.\n", PlayerDump(player))
 		return p, false
 	}
 	p.EncodeInt32(0)
@@ -305,6 +299,23 @@ func LeaveRoom(a *network.Agent, params []interface{}) (p *proto.ProtocolBytes, 
 		room.Broadcast(room.GetRoomInfo())
 	}
 	GetGLobby().Broadcast()
-	p.SetLength()
 	return p, false
+}
+
+//maybe delete the function
+func Chat(a *network.Agent, params []interface{}) (p *proto.ProtocolBytes, isEmpty bool) {
+	p = proto.NewProtocolBytes([]byte{0, 0, 0, 0})
+	p.EncodeString("Chat")
+	p.EncodeString(params[0].(string))
+	player, ok := GetGLobby().FindPlayer(a)
+	if !ok {
+		log.Println("player not find.", a)
+		return nil, true
+	}
+	log.Println("team is : ", player.extraPayerData.team)
+	p.EncodeInt32(int32(player.extraPayerData.team))
+//	player.extraPayerData.room.ChatBroadcast(p)
+
+	player.extraPayerData.room.Broadcast(p)
+	return nil, true
 }

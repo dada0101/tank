@@ -42,6 +42,11 @@ type Player struct {
 	extraPayerData ExtraPlayerData
 
 	agent *network.Agent
+	chatAgent *network.Agent
+
+	agentList map[*network.Agent]bool
+
+	loginCnt int
 }
 
 func PlayerDump(p *Player) string {
@@ -58,7 +63,7 @@ func PlayerDump(p *Player) string {
 }
 
 
-func NewPlayer(name string, id, score, win, fail int, a *network.Agent) *Player {
+func NewPlayer(name string, id, score, win, fail int, gameAgent, chatAgent *network.Agent, loginCnt int) *Player {
 	return &Player{
 		int32(id),
 		PlayerData{name, score, win, fail, },
@@ -68,7 +73,10 @@ func NewPlayer(name string, id, score, win, fail int, a *network.Agent) *Player 
 										0,
 										0,
 										TankData{0.0,0.0,0.0,0}},
-		a,
+		gameAgent,
+		chatAgent,
+		make(map[*network.Agent]bool),
+		loginCnt,
 	}
 }
 
@@ -79,9 +87,24 @@ func(p *Player) KickOff() {
 
 func(player *Player) Send(p * proto.ProtocolBytes) {
 	player.agent.Send(p.GetBuf())
+	for a, _ := range player.agentList {
+		a.Send(p.GetBuf())
+	}
+}
+
+func(player *Player) Hello(p * proto.ProtocolBytes) {
+	player.chatAgent.Send(p.GetBuf())
+}
+
+func(player *Player) AddSpectator(a *network.Agent) {
+	player.agentList[a] = true
+}
+func(player *Player) DelSpectator(a *network.Agent) {
+	delete(player.agentList, a)
 }
 
 func(p *Player) Logout() bool {
+	p.loginCnt++
 	if p.extraPayerData.status == ROOM {
 		GetGLobby().LeaveRoom(p)
 		room := p.extraPayerData.room
@@ -96,9 +119,17 @@ func(p *Player) Logout() bool {
 		GetGLobby().LeaveRoom(p)
 	}
 
-	if !db.SetUserData(int(p.id), p.playerData.score, p.playerData.win, p.playerData.fail) {
+	if !db.SetUserData(int(p.id), p.playerData.score, p.playerData.win, p.playerData.fail, p.loginCnt) {
 		log.Println("p.id : ", p.id, "save the user data error.")
 		return false
 	}
 	return true
+}
+
+func(p *Player)AddChatChannel(chatAgent *network.Agent) {
+	p.chatAgent = chatAgent
+}
+
+func(p *Player)GetRoom() *Room {
+	return p.extraPayerData.room
 }
