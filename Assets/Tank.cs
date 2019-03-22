@@ -476,6 +476,7 @@ public class Tank : MonoBehaviour
         if (hp > 0)
         {
             hp -= att;
+            //调用伤害外显的方法
             transform.Find("Canvas2").GetComponent<HUDText>().HUD((int)att);
         }
         if (hp <= 0)
@@ -609,6 +610,7 @@ public class Tank : MonoBehaviour
             //绘制玩家
             if (bt.camp == 1)
             {
+                //根据是玩家还是队友绘制不同的标记
                 if(bt.tank.name == GameMgr.instance.id)
                     GUI.DrawTexture(markRect, redPlayerTeamMark);
                 else
