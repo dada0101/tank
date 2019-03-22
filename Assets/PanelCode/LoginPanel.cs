@@ -8,6 +8,7 @@ public class LoginPanel : PanelBase
     private InputField pwInput;
     private Button loginBtn;
     private Button regBtn;
+    private string newHandMessage;
 
     #region 生命周期
     //初始化
@@ -16,6 +17,8 @@ public class LoginPanel : PanelBase
         base.Init(args);
         skinPath = "LoginPanel";
         layer = PanelLayer.Panel;
+        newHandMessage = "您好，尊敬的坦克兵！在踏上保卫祖国的旅途前，你需要了解一下操作方法：\n " + 
+            "用鼠标控制坦克的射击，W，A，S，D控制坦克的移动，回车键进行聊天的选择与发送.祝你好运！";
     }
 
     public override void OnShowing()
@@ -31,8 +34,6 @@ public class LoginPanel : PanelBase
         regBtn.onClick.AddListener(OnRegClick);
     }
     #endregion
-
-
 
     public void OnRegClick()
     {
@@ -65,7 +66,6 @@ public class LoginPanel : PanelBase
         protocol.AddString("xinjaystudio");
         Debug.Log("发送 " + protocol.GetDesc());
         NetMgr.srvConn.Send(protocol, OnLoginBack);
-
     }
 
     public void OnLoginBack(ProtocolBase protocol)
@@ -74,9 +74,14 @@ public class LoginPanel : PanelBase
         int start = 0;
         string protoName = proto.GetString(start, ref start);
         int ret = proto.GetInt(start, ref start);
+        int isNewerHand = proto.GetInt(start, ref start);
         if (ret == 0)
         {
-            PanelMgr.instance.OpenPanel<TipPanel>("", "登录成功!");
+            if (isNewerHand == 1)
+                PanelMgr.instance.OpenPanel<TipPanel>("", newHandMessage);
+            else
+                PanelMgr.instance.OpenPanel<TipPanel>("", "登录成功!");
+
             //开始游戏
             PanelMgr.instance.OpenPanel<RoomListPanel>("");
             GameMgr.instance.id = idInput.text;
