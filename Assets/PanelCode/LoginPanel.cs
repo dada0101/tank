@@ -52,7 +52,7 @@ public class LoginPanel : PanelBase
         //连接服务器
         if (NetMgr.srvConn.status != Connection.Status.Connected)
         {
-            string host = "10.246.34.154"; 
+            string host = "47.102.217.164"; 
             int port = 18085; 
             NetMgr.srvConn.proto = new ProtocolBytes();
             if (!NetMgr.srvConn.Connect(host, port))
@@ -71,7 +71,7 @@ public class LoginPanel : PanelBase
         //连接服务器
         if (NetMgr.talkConn.status != Connection.Status.Connected)
         {
-            string host = "10.246.34.154";
+            string host = "47.102.217.164";
             int port = 18086;
             NetMgr.talkConn.proto = new ProtocolBytes();
             if (!NetMgr.talkConn.Connect(host, port))
