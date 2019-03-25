@@ -41,26 +41,26 @@ func ByteToUint32(b []byte) uint32 {
 * +--+--+--+--+
  */
 
- type ProtocolBytes struct {
+ type BufferStream struct {
  	buf []byte
  	pos int32
  }
 
-func NewProtocolBytes (buf []byte) *ProtocolBytes {
-	return &ProtocolBytes{
+func NewBufferStream (buf []byte) *BufferStream {
+	return &BufferStream{
 		buf,
 		0,
 	}
 }
 
- func(br *ProtocolBytes)GetPos() int{
+ func(br *BufferStream)GetPos() int{
  	return int(br.pos)
  }
 
  //@Warning this functions have many memory-copy action, only for demo
 
 //@Decode
-func(br *ProtocolBytes) DecodeInt32() int32 {
+func(br *BufferStream) DecodeInt32() int32 {
 	if br.pos + 4 > int32(len(br.buf)) {
 		return 0
 	}
@@ -69,7 +69,7 @@ func(br *ProtocolBytes) DecodeInt32() int32 {
 	return int32(result)
 }
 
-func(br *ProtocolBytes) DecodeFloat32() float32 {
+func(br *BufferStream) DecodeFloat32() float32 {
 	if br.pos + 4 > int32(len(br.buf)) {
 		return 0.0
 	}
@@ -78,7 +78,7 @@ func(br *ProtocolBytes) DecodeFloat32() float32 {
 	return result
 }
 
-func (br *ProtocolBytes) DecodeString() (str string) {
+func (br *BufferStream) DecodeString() (str string) {
 	lens := br.DecodeInt32()
 	if br.pos + lens > int32(len(br.buf)) {
 		return
@@ -90,17 +90,17 @@ func (br *ProtocolBytes) DecodeString() (str string) {
 //@Decode
 
 //@Encode
-func(br *ProtocolBytes) EncodeInt32(n int32) {
+func(br *BufferStream) EncodeInt32(n int32) {
 	bytes := Uint32ToByte(uint32(n))
 	br.buf = append(br.buf, bytes...)
 }
 
-func (br *ProtocolBytes) EncodeFloat32(f float32) {
+func (br *BufferStream) EncodeFloat32(f float32) {
 	bytes := Float32ToByte(f)
 	br.buf = append(br.buf, bytes...)
 }
 
-func (br *ProtocolBytes) EncodeString(str string) {
+func (br *BufferStream) EncodeString(str string) {
 	bytes := []byte(str)
 	br.EncodeInt32(int32(len(bytes)))
 	br.buf = append(br.buf, bytes...)
@@ -108,13 +108,14 @@ func (br *ProtocolBytes) EncodeString(str string) {
 //@Encode
 
 // \note it will set the first 4 bytes
-func (br *ProtocolBytes) SetLength() {
+func (br *BufferStream) SetLength() {
 	len := uint32(len(br.buf) - 4)
 	b := Uint32ToByte(len)
 	br.buf[0], br.buf[1], br.buf[2], br.buf[3] = b[0], b[1], b[2], b[3]
 }
 
-func (br *ProtocolBytes)GetBuf() []byte {
+func (br *BufferStream)GetBuf() []byte {
+	br.SetLength()
 	return br.buf
 }
 

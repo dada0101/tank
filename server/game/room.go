@@ -14,7 +14,34 @@ const (
 
 	ROOM_SIZE = 6
 )
+/*
+type Beholder struct {
+//	group *network.Group
+	room *Room
+	drakon *Player
+	player *Player
 
+	extra *extraTankData
+}
+
+type extraTankData struct {
+	rotX, rotY, rotZ, gunRot, gunRoll float32
+}
+
+
+func(bh *Beholder)Change(player *Player) bool {
+	bh.player = player
+	return true
+}
+
+func(bh *Beholder)Set() {
+	bh.drakon.extraPayerData = bh.player.extraPayerData
+}
+
+func(bh *Beholder)Send(p *proto.ProtocolBytes) {
+	bh.drakon.Send(p)
+}
+*/
 
 type Room struct {
 	mu sync.Mutex
@@ -22,7 +49,11 @@ type Room struct {
 	status int
 	playerCnt int
 
+	chDie chan struct{}
 	group *network.Group
+	chatGroup *network.Group
+
+//	beholders map[*Beholder]bool
 }
 
 func RoomDump(r *Room) string{
@@ -39,14 +70,17 @@ func RoomDump(r *Room) string{
 }
 
 
-func NewRoom(g *network.Group) *Room{
+func NewRoom() *Room{
 	r := new(Room)
 	for i := 0; i < len(r.players); i++ {
 		r.players[i] = nil
 	}
 	r.status = ROOM_STATUS_PREPARE
 	r.playerCnt = 0
-	r.group = g
+	r.group = network.NewGroup(0)
+	r.chatGroup = network.NewGroup(1)
+	r.chDie = make(chan  struct{}, 1)
+//	r.beholders = make(map[*Beholder]bool)
 	return r
 }
 
@@ -73,6 +107,7 @@ func(r *Room)AddPlayer(p *Player) bool {
 			p.extraPayerData.team = r.SwitchTeam()
 			r.players[i] = p
 			r.group.Add(p.agent)
+			r.chatGroup.Add(p.chatAgent)
 			p.extraPayerData.room = r
 			return true
 		}
@@ -95,7 +130,6 @@ func(r *Room) SwitchTeam() int{
 	return TEAM_BLUE
 }
 
-
 func(r *Room)DelPlayer(p *Player) bool {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -105,6 +139,7 @@ func(r *Room)DelPlayer(p *Player) bool {
 			r.players[i] = nil
 			r.playerCnt--
 			r.group.Del(p.agent)
+			r.chatGroup.Del(p.chatAgent)
 			if p.extraPayerData.isOwner {
 					p.extraPayerData.isOwner = false
 					r.SwitchOwner()
@@ -122,6 +157,7 @@ func(r *Room)SwitchOwner() {
 	for i := 0; i < ROOM_SIZE; i++ {
 		if r.players[i] != nil {
 			r.players[i].extraPayerData.isOwner = true
+			r.players[i].extraPayerData.status = ROOM
 			return
 		}
 	}
@@ -129,6 +165,31 @@ func(r *Room)SwitchOwner() {
 
 func(r *Room)Broadcast(p *proto.ProtocolBytes) {
 	r.group.Broadcast(p.GetBuf())
+}
+/*
+func(r *Room)BeholdersBroadcast(p *proto.ProtocolBytes) {
+	for bh, _ := range r.beholders {
+		if bh.player.extraPayerData.status == FIGHT {
+			bh.Set()
+		} else {
+			for _, p := range r.players {
+				if p != nil {
+					bh.Change(p)
+					break
+				}
+			}
+		}
+		if bh.player.extraPayerData.status != FIGHT {
+
+		}
+	}
+	for bh, _ := range r.beholders {
+		bh.Send(p)
+	}
+}
+*/
+func(r *Room)ChatBroadcast(p *proto.ProtocolBytes) {
+	r.chatGroup.Broadcast(p.GetBuf())
 }
 
 func(r *Room)GetRoomInfo() *proto.ProtocolBytes{
@@ -156,7 +217,7 @@ func(r *Room)GetRoomInfo() *proto.ProtocolBytes{
 
 		}
 	}
-	p.SetLength()
+
 	return p
 }
 
@@ -173,7 +234,6 @@ func(r *Room)cnts() (int, int){
 	}
 	return cnt1, cnt2
 }
-
 
 func(r *Room)CanStart() bool{
 	if r.status == ROME_STATUS_FIGHT {
@@ -224,10 +284,9 @@ func(r *Room)StartFight() {
 		}
 		player.extraPayerData.status = FIGHT
 	}
-	p.SetLength()
+
 	r.Broadcast(p)
 }
-
 
 func(r *Room)IsWin() int {
 	if r.status != ROME_STATUS_FIGHT {
@@ -277,7 +336,7 @@ func(r *Room)UpdateWin() {
 	p := proto.NewProtocolBytes([]byte{0, 0, 0, 0})
 	p.EncodeString("Result")
 	p.EncodeInt32(int32(whichTeam))
-	p.SetLength()
+
 	r.Broadcast(p)
 	GetGLobby().Broadcast()
 }
@@ -289,13 +348,18 @@ func(r *Room) ExitFight(player *Player) {
 	p.EncodeString(player.playerData.name)
 	p.EncodeString(player.playerData.name)
 	p.EncodeFloat32(999.0)
-	p.SetLength()
 	r.Broadcast(p)
 	if r.IsWin() == NOONE {
 		player.playerData.fail++
 	}
 	r.UpdateWin()
 }
-
-
+/*
+func ChatStart() {
+	for {
+		select {
+			case
+		}
+	}
+}*/
 

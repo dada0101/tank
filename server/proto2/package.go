@@ -2,31 +2,25 @@ package proto2
 
 import "TankDemo/network"
 
-
-// Read(ProtocolBytes)
-// Write(ProtocolBytes)
-// Exec(agent)
-
 type (
 	Package interface {
-		Init([]byte)
-		Decode() bool
-		Encode() bool
-		Exec(a *network.Agent)
+		Read(stream *BufferStream) bool
+		Write(stream *BufferStream) bool
+		Exec(a *network.Agent) *BufferStream
 	}
 
-	PackcageFactory struct {
+	PackageFactory struct {
 		mapping map[string]*Package
 	}
 )
 
-func NewPackageFactory() *PackcageFactory {
-	return & PackcageFactory{
+func NewPackageFactory() *PackageFactory {
+	return & PackageFactory{
 		make(map[string]*Package),
 	}
 }
 
-func(pf *PackcageFactory)NewPackage(name string) *Package {
+func(pf *PackageFactory)NewPackage(name string) *Package {
 	pkg, ok := pf.mapping[name]
 	if !ok {
 		return nil
@@ -37,5 +31,4 @@ func(pf *PackcageFactory)NewPackage(name string) *Package {
 type NilPackage struct {
 
 }
-
 

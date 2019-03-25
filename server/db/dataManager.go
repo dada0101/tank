@@ -40,7 +40,7 @@ func Register(name,pwd string) (int,bool){
 	return id,true
 }
 
-func CheckPwd(name, pwd string) (uid int, check bool) {
+func CheckPwd(name, pwd string) (uid int, check bool, login_cnt int) {
 	uid = -1
 	check = false
 	db, err := sql.Open("mysql", "root:root@/Tank3D")
@@ -54,7 +54,7 @@ func CheckPwd(name, pwd string) (uid int, check bool) {
 		log.Println(err)
 		return
 	}
-	rows, err := db.Query("select user_id, pwd from user where name = ?",name)
+	rows, err := db.Query("select user_id, pwd, login_cnt from user where name = ?",name)
 	if err != nil {
 		log.Println(err)
 		return
@@ -62,7 +62,7 @@ func CheckPwd(name, pwd string) (uid int, check bool) {
 
 	for rows.Next() {
 		var pw string
-		rows.Scan(&uid, &pw)
+		rows.Scan(&uid, &pw, &login_cnt)
 		log.Println("db check pwd: [uid:", uid, ", pwd: ", pw, "]")
 		if pw == pwd {
 			check = true
@@ -123,7 +123,7 @@ func GetUserData(uid int) (score, win, fail int, err error) {
 	return
 }
 
-func SetUserData(uid, score, win, fail int) bool {
+func SetUserData(uid, score, win, fail, loginCnt int) bool {
 	db, err := sql.Open("mysql", "root:root@/Tank3D")
 	if err != nil {
 		log.Println(err)
@@ -131,6 +131,11 @@ func SetUserData(uid, score, win, fail int) bool {
 	}
 	defer db.Close()
 	err = db.Ping()
+	if err != nil {
+		log.Println(err)
+		return false
+	}
+	_, err = db.Exec("update user set login_cnt = ? where user_id = ?",  loginCnt, uid)
 	if err != nil {
 		log.Println(err)
 		return false

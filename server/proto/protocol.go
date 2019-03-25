@@ -108,13 +108,17 @@ func (br *ProtocolBytes) EncodeString(str string) {
 //@Encode
 
 // \note it will set the first 4 bytes
+/*
 func (br *ProtocolBytes) SetLength() {
 	len := uint32(len(br.buf) - 4)
 	b := Uint32ToByte(len)
 	br.buf[0], br.buf[1], br.buf[2], br.buf[3] = b[0], b[1], b[2], b[3]
 }
-
+*/
 func (br *ProtocolBytes)GetBuf() []byte {
+	len := uint32(len(br.buf) - 4)
+	b := Uint32ToByte(len)
+	br.buf[0], br.buf[1], br.buf[2], br.buf[3] = b[0], b[1], b[2], b[3]
 	return br.buf
 }
 func (br *ProtocolBytes)GetBufEx() []byte {

@@ -1,12 +1,15 @@
 package main
 
 import (
+	chat2 "TankDemo/chat"
 	"TankDemo/game"
 	"TankDemo/network"
 	"TankDemo/proto"
 	"log"
 	"net"
+	"os"
 	"reflect"
+	"time"
 )
 
 
@@ -42,6 +45,7 @@ func Init() {
 	proto.GetGRpcMap().AddActionHandle( "LeaveRoom", []reflect.Kind{}, game.LeaveRoom)
 	proto.GetGRpcMap().AddActionHandle( "SwitchTeam", []reflect.Kind{reflect.Int32, }, game.SwitchTeam)
 
+	proto.GetGRpcMap().AddActionHandle("Chat", []reflect.Kind{reflect.String,}, game.Chat)
 }
 
 func main() {
@@ -49,14 +53,14 @@ func main() {
 	game.InitGLobby()
 	network.CloseHandle = close
 
-	//logFile, err := os.OpenFile("log.txt", os.O_CREATE | os.O_WRONLY | os.O_APPEND, 0666)
-	//if err != nil {
-	//	log.Fatalln("log file can not to open!! ", err)
-	//}
-	//log.SetOutput(logFile)
-	//defer func () {
-	///	logFile.Close()
-	//} ()
+	logFile, err := os.OpenFile("log.txt", os.O_CREATE | os.O_WRONLY | os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalln("log file can not to open!! ", err)
+	}
+	log.SetOutput(logFile)
+	defer func () {
+		logFile.Close()
+	} ()
 	tcpConn, err := net.Listen("tcp", "0.0.0.0:18085")
 	if err != nil {
 		log.Println(err)
@@ -71,7 +75,34 @@ func main() {
 		}
 		a := network.NewAgent(int32(uid), conn)
 		uid++
-		a.Run(game.Process)
+		a.Run(game.Process, 30 * time.Second)
 	}
 
+}
+
+func chat() {
+	chatConn, err := net.Listen("tcp", "0.0.0.0:18086")
+	if err != nil {
+		log.Println(err)
+	}
+	var cid = 0
+	for {
+		conn, err := chatConn.Accept()
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		var buf []byte
+		conn.Read(buf)
+		pb := proto.NewProtocolBytes(buf)
+		name := pb.DecodeString()
+		p, ok := game.GetGLobby().FindPlayerByName(name)
+		if !ok {
+			log.Println("the name [", name , "] not map a player.")
+		}
+		a := network.NewAgent(int32(cid), conn)
+		p.AddChatChannel(a)
+		cid++
+		a.Run(chat2.Process, 100 * time.Hour)
+	}
 }
