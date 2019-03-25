@@ -6,11 +6,11 @@ using System.Collections.Generic;
 public class NetMgr
 {
     public static Connection srvConn = new Connection();
-    //public static Connection platformConn = new Connection();
+    public static Connection talkConn = new Connection();
     public static void Update()
     {
         srvConn.Update();
-        //platformConn.Update();
+        talkConn.Update();
     }
 
     //心跳

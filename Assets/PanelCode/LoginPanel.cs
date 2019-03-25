@@ -58,6 +58,15 @@ public class LoginPanel : PanelBase
             if (!NetMgr.srvConn.Connect(host, port))
                 PanelMgr.instance.OpenPanel<TipPanel>("", "连接服务器失败!");
         }
+        //连接服务器
+        if (NetMgr.talkConn.status != Connection.Status.Connected)
+        {
+            string host = "47.102.217.164";
+            int port = 18086;
+            NetMgr.talkConn.proto = new ProtocolBytes();
+            if (!NetMgr.talkConn.Connect(host, port))
+                PanelMgr.instance.OpenPanel<TipPanel>("", "连接服务器失败!");
+        }
         //发送
         ProtocolBytes protocol = new ProtocolBytes();
         protocol.AddString("Login");
