@@ -118,7 +118,6 @@ func(p *Player) Logout() bool {
 		room.ExitFight(p)
 		GetGLobby().LeaveRoom(p)
 	}
-
 	if !db.SetUserData(int(p.id), p.playerData.score, p.playerData.win, p.playerData.fail, p.loginCnt) {
 		log.Println("p.id : ", p.id, "save the user data error.")
 		return false
@@ -132,4 +131,8 @@ func(p *Player)AddChatChannel(chatAgent *network.Agent) {
 
 func(p *Player)GetRoom() *Room {
 	return p.extraPayerData.room
+}
+
+func(p *Player)GetTeam() int {
+	return p.extraPayerData.team
 }

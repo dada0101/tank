@@ -1,6 +1,7 @@
 package game
 
 import (
+
 	"TankDemo/db"
 	"TankDemo/network"
 	"TankDemo/proto"
@@ -16,8 +17,8 @@ type Lobby struct {
 	roomList []*Room
 
 	nameToPlayer map[string]*Player
-
 //	chLeavePlayer chan *Player
+	nameToChatAgnetChan map[string]*chan struct{}
 }
 
 func (l *Lobby)Broadcast() {
@@ -83,7 +84,14 @@ func InitGLobby() {
 	gLobby.agentToPlayer = make(map[*network.Agent]*Player)
 	gLobby.nameToPlayer = make(map[string]*Player)
 	gLobby.roomList = make([]*Room, 0)
+	gLobby.nameToChatAgnetChan = make(map[string]*chan struct{}, 0)
+}
 
+func LoginChatChan(name string, a *network.Agent) {
+	gLobby.nameToChatAgnetChan[name] = &a.ExtraChan
+}
+func LogoutChatChan(name string) {
+	delete(gLobby.nameToChatAgnetChan, name)
 }
 
 func GetGLobby() *Lobby {
@@ -208,11 +216,15 @@ func Login(a *network.Agent, params []interface{})(*proto.ProtocolBytes, bool) {
 
 	pro.EncodeInt32(0)
 	if loginCnt == 0 {
-		pro.EncodeInt32(int32(1))
+		pro.EncodeInt32(int32(1)) // 备注：这里的 1 代表第一次登陆 也就是 新手
 	}	else {
 		pro.EncodeInt32(0)
 	}
-
+	var chanRef *chan struct{}
+	chanRef, ok = GetGLobby().nameToChatAgnetChan[name]
+	if ok {
+		(*chanRef) <- struct{}{}
+	}
 	return pro, false
 }
 
@@ -271,7 +283,9 @@ func LogoutEx(a *network.Agent, params []interface{}) (*proto.ProtocolBytes, boo
 	}
 	delete(GetGLobby().nameToPlayer, player.playerData.name)
 	delete(GetGLobby().agentToPlayer, a)
+	GetChatAgentManager().DelPlayer(player.chatAgent)
 	player.Logout()
+//	player.chatAgent.Close()
 	return pb, false
 }
 
@@ -330,7 +344,7 @@ func Process(a *network.Agent, bytes []byte) ([]byte,bool) {
 		}
 	}
 
-	log.Println(methodName, params)
+//	log.Println(methodName, params)
 	var m = md.GetMethod().(func(a *network.Agent, params []interface{})(*proto.ProtocolBytes, bool))
 	pb, isEmpty := m(a, params)
 	if isEmpty {

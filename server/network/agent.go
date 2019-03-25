@@ -44,6 +44,7 @@ type (
 		state int32
 		chDie chan struct{}
 		sendBuf chan []byte
+		ExtraChan chan struct{}
 	}
 )
 
@@ -57,6 +58,7 @@ func NewAgent(id int32, conn net.Conn) *Agent {
 		AGENT_STATE_ONLINE,
 		make(chan struct{}),
 		make(chan []byte, BUF_LENG),
+		make(chan struct{}, 1),
 	}
 }
 
