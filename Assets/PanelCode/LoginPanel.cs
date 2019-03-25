@@ -79,6 +79,7 @@ public class LoginPanel : PanelBase
         }
 
         ProtocolBytes talkProtocol = new ProtocolBytes();
+        talkProtocol.AddString("ChatName");
         talkProtocol.AddString(idInput.text);
         NetMgr.talkConn.Send(talkProtocol);
     }
