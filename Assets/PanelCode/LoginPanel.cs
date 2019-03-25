@@ -52,11 +52,11 @@ public class LoginPanel : PanelBase
         //连接服务器
         if (NetMgr.srvConn.status != Connection.Status.Connected)
         {
-            string host = "47.102.217.164"; 
+            string host = "10.246.34.154"; 
             int port = 18085; 
             NetMgr.srvConn.proto = new ProtocolBytes();
             if (!NetMgr.srvConn.Connect(host, port))
-                PanelMgr.instance.OpenPanel<TipPanel>("", "连接服务器失败!");
+                PanelMgr.instance.OpenPanel<TipPanel>("", "连接服务器主端口失败!");
         }
         //发送
         ProtocolBytes protocol = new ProtocolBytes();
@@ -71,11 +71,11 @@ public class LoginPanel : PanelBase
         //连接服务器
         if (NetMgr.talkConn.status != Connection.Status.Connected)
         {
-            string host = "47.102.217.164";
+            string host = "10.246.34.154";
             int port = 18086;
             NetMgr.talkConn.proto = new ProtocolBytes();
             if (!NetMgr.talkConn.Connect(host, port))
-                PanelMgr.instance.OpenPanel<TipPanel>("", "连接服务器失败!");
+                PanelMgr.instance.OpenPanel<TipPanel>("", "连接服务器聊天端口失败!");
         }
         ProtocolBytes talkProtocol = new ProtocolBytes();
         talkProtocol.AddString(idInput.text);
