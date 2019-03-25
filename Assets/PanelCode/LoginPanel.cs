@@ -77,14 +77,10 @@ public class LoginPanel : PanelBase
             if (!NetMgr.talkConn.Connect(host, port))
                 PanelMgr.instance.OpenPanel<TipPanel>("", "连接服务器聊天端口失败!");
         }
+
         ProtocolBytes talkProtocol = new ProtocolBytes();
         talkProtocol.AddString(idInput.text);
-        NetMgr.talkConn.Send(talkProtocol, OnTalkBack);
-    }
-
-    public void OnTalkBack(ProtocolBase protocol)
-    {
-
+        NetMgr.talkConn.Send(talkProtocol);
     }
 
     public void OnLoginBack(ProtocolBase protocol)
