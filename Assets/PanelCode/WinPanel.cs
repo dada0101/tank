@@ -52,6 +52,7 @@ public class WinPanel : PanelBase
     public void OnCloseClick()
     {
         MultiBattle.instance.ClearBattle();
+        PanelMgr.instance.ClosePanel("TalkPanel");
         PanelMgr.instance.OpenPanel<RoomPanel>("");
         Close();
     }

@@ -156,8 +156,6 @@ public class Connection
         return Send(protocol, cbName, cb);
     }
 
-
-
     public void Update()
     {
         //消息
