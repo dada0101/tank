@@ -58,6 +58,16 @@ public class LoginPanel : PanelBase
             if (!NetMgr.srvConn.Connect(host, port))
                 PanelMgr.instance.OpenPanel<TipPanel>("", "连接服务器失败!");
         }
+        //发送
+        ProtocolBytes protocol = new ProtocolBytes();
+        protocol.AddString("Login");
+        protocol.AddString(idInput.text);
+        protocol.AddString(pwInput.text);
+        protocol.AddString("xinjaystudio");
+        Debug.Log("发送 " + protocol.GetDesc());
+        NetMgr.srvConn.Send(protocol, OnLoginBack);
+
+
         //连接服务器
         if (NetMgr.talkConn.status != Connection.Status.Connected)
         {
@@ -67,14 +77,14 @@ public class LoginPanel : PanelBase
             if (!NetMgr.talkConn.Connect(host, port))
                 PanelMgr.instance.OpenPanel<TipPanel>("", "连接服务器失败!");
         }
-        //发送
-        ProtocolBytes protocol = new ProtocolBytes();
-        protocol.AddString("Login");
-        protocol.AddString(idInput.text);
-        protocol.AddString(pwInput.text);
-        protocol.AddString("xinjaystudio");
-        Debug.Log("发送 " + protocol.GetDesc());
-        NetMgr.srvConn.Send(protocol, OnLoginBack);
+        ProtocolBytes talkProtocol = new ProtocolBytes();
+        talkProtocol.AddString(idInput.text);
+        NetMgr.talkConn.Send(talkProtocol, OnTalkBack);
+    }
+
+    public void OnTalkBack(ProtocolBase protocol)
+    {
+
     }
 
     public void OnLoginBack(ProtocolBase protocol)
