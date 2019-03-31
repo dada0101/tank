@@ -6,6 +6,8 @@ import (
 	"log"
 )
 
+// 部分方法实现的地方
+
 func Prepare(a *network.Agent, params []interface{}) (p *proto.ProtocolBytes, isEmpty bool) {
 	player, ok := GetGLobby().FindPlayer(a)
 	if !ok {
@@ -247,17 +249,7 @@ func EnterRoom(a *network.Agent, params []interface{}) (p *proto.ProtocolBytes, 
 	p.EncodeString("EnterRoom")
 	if room.status != ROOM_STATUS_PREPARE {
 		p.EncodeInt32(-1)
-/*
-		for _, p := range room.players {
-			if p == nil {
-				continue
-			}
-			if p.extraPayerData.isOwner {
-				p.AddSpectator(a)
-				break
-			}
-		}
-*/
+
 		return p, false
 	}
 	if room.AddPlayer(player) {

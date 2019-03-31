@@ -13,11 +13,12 @@ type PlayerData struct {
 	score, win, fail int
 }
 
+// 玩家状态
 const (
-	NONE = 0
-	ROOM = 1
-	FIGHT = 2
-	PREPARE = 3
+	NONE = 0		//  无
+	ROOM = 1		// 在房间中
+	FIGHT = 2		// 在战斗中
+	PREPARE = 3		// 准备状态
 )
 
 type TankData struct {
@@ -26,27 +27,27 @@ type TankData struct {
 }
 
 type ExtraPlayerData struct {
-	status int
-	room *Room
-	isOwner bool
-	updateCnt int32
-	team int
-	tankData TankData
+	status int			// 玩家状态
+	room *Room			// 所属房间
+	isOwner bool		// 是否是房主
+	updateCnt int32		// 修改计数
+	team int			// 所属队伍
+	tankData TankData	// 坦克数据
 }
 
 
 
 type Player struct {
-	id int32
-	playerData PlayerData
-	extraPayerData ExtraPlayerData
+	id int32						// 玩家id
+	playerData PlayerData			// tank数据
+	extraPayerData ExtraPlayerData	// 玩家扩展数据
 
-	agent *network.Agent
-	chatAgent *network.Agent
+	agent *network.Agent			// 游戏逻辑代理
+	chatAgent *network.Agent		// 聊天代理
 
-	agentList map[*network.Agent]bool
+	agentList map[*network.Agent]bool	// TODO  暂时没有用到 一直为空
 
-	loginCnt int
+	loginCnt int		// 登陆计数
 }
 
 func PlayerDump(p *Player) string {
@@ -80,7 +81,7 @@ func NewPlayer(name string, id, score, win, fail int, gameAgent, chatAgent *netw
 	}
 }
 
-// 关于重复登陆，不允许下一个登陆
+// TODO 关于重复登陆，不允许下一个登陆
 func(p *Player) KickOff() {
 
 }

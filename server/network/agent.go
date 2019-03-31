@@ -36,15 +36,15 @@ var (
 
 type (
 	Agent struct {
-		id int32
-		uid int32
-		noHBCnt uint32
-		conn net.Conn
-		lastMsgId uint32
-		state int32
+		id int32		// 自己的id
+		uid int32		// 玩家id
+		noHBCnt uint32  // 无心跳计数，当到达某个值时，将连接断开
+		conn net.Conn	// 连接
+		lastMsgId uint32 // 最后一条消息id
+		state int32		// 当前状态
 		chDie chan struct{}
-		sendBuf chan []byte
-		ExtraChan chan struct{}
+		sendBuf chan []byte		// buffer 缓冲
+		ExtraChan chan struct{} // 用于两个agent简单同步
 	}
 )
 
@@ -82,8 +82,8 @@ func (a *Agent) NoHBCntZero() {
 func (a *Agent) GetHBCnt() uint32{
 	return atomic.LoadUint32(&a.noHBCnt)
 }
-// no block send
 
+// no block send
 func (a *Agent) Send(m []byte) error {
 	if a.Status() == AGENT_STATE_CLOSED {
 		return CLOSED_AGENT_ERR

@@ -1,11 +1,9 @@
 package game
 
 import (
-
 	"TankDemo/db"
 	"TankDemo/network"
 	"TankDemo/proto"
-	"TankDemo/proto2"
 	"log"
 	"reflect"
 	"sync"
@@ -13,12 +11,12 @@ import (
 
 type Lobby struct {
 	mu sync.Mutex
-	agentToPlayer map[*network.Agent]*Player
-	roomList []*Room
+	agentToPlayer map[*network.Agent]*Player		// 代理到玩家的映射
+	roomList []*Room								// 所有房间
 
-	nameToPlayer map[string]*Player
+	nameToPlayer map[string]*Player					// 玩家姓名到玩家的映射
 //	chLeavePlayer chan *Player
-	nameToChatAgnetChan map[string]*chan struct{}
+	nameToChatAgnetChan map[string]*chan struct{}	// 姓名到chatAgentChan 的映射，用于同步
 }
 
 func (l *Lobby)Broadcast() {
@@ -87,11 +85,11 @@ func InitGLobby() {
 	gLobby.nameToChatAgnetChan = make(map[string]*chan struct{}, 0)
 }
 
-func LoginChatChan(name string, a *network.Agent) {
-	gLobby.nameToChatAgnetChan[name] = &a.ExtraChan
+func(l *Lobby) LoginChatChan(name string, a *network.Agent) {
+	l.nameToChatAgnetChan[name] = &a.ExtraChan
 }
-func LogoutChatChan(name string) {
-	delete(gLobby.nameToChatAgnetChan, name)
+func(l *Lobby) LogoutChatChan(name string) {
+	delete(l.nameToChatAgnetChan, name)
 }
 
 func GetGLobby() *Lobby {
@@ -124,7 +122,7 @@ func HeartBeat(a *network.Agent, params []interface{}) (*proto.ProtocolBytes, bo
 	a.NoHBCntZero()
 	return nil, true
 }
-
+/*
 type HeartBeatPackage struct {
 }
 func(hbp *HeartBeatPackage)Read(stream *proto2.BufferStream) bool {
@@ -137,7 +135,7 @@ func(hbp *HeartBeatPackage)Exec(a *network.Agent)  *proto2.BufferStream {
 	a.NoHBCntZero()
 	return nil
 }
-
+*/
 
 func Register(a *network.Agent, params []interface{}) (*proto.ProtocolBytes, bool){
 	 name := params[0].(string)
@@ -159,7 +157,7 @@ const (
 	FAILED = -1
 	SUCCEED = 0
 )
-
+/*
 type RegisterPackage struct {
 	name, pwd string
 }
@@ -190,7 +188,7 @@ func(rp *RegisterPackage)Exec(a *network.Agent) *proto2.BufferStream {
 	db.CreateUserData(uid)
 	return bs
 }
-
+*/
 func Login(a *network.Agent, params []interface{})(*proto.ProtocolBytes, bool) {
 	name := params[0].(string)
 	pwd := params[1].(string)
@@ -227,7 +225,7 @@ func Login(a *network.Agent, params []interface{})(*proto.ProtocolBytes, bool) {
 	}
 	return pro, false
 }
-
+/*
 type LoginPackage struct {
 	name, pwd string
 }
@@ -266,7 +264,7 @@ func(lp *LoginPackage)Exec(a *network.Agent) *proto2.BufferStream {
 	bf.EncodeInt32(SUCCEED)
 	return bf
 }
-
+*/
 
 func LogoutEx(a *network.Agent, params []interface{}) (*proto.ProtocolBytes, bool) {
 	pb := proto.NewProtocolBytes([]byte{0, 0, 0, 0})
@@ -288,7 +286,7 @@ func LogoutEx(a *network.Agent, params []interface{}) (*proto.ProtocolBytes, boo
 //	player.chatAgent.Close()
 	return pb, false
 }
-
+/*
 type LogoutPackage struct {
 }
 
@@ -316,7 +314,7 @@ func(lp *LogoutPackage)Exec(a *network.Agent) *proto2.BufferStream {
 	return bs
 }
 
-
+*/
 func Process(a *network.Agent, bytes []byte) ([]byte,bool) {
 	pro := proto.NewProtocolBytes(bytes)
 	lenOfMsg := pro.DecodeInt32()

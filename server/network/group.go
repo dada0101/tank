@@ -15,9 +15,9 @@ const (
 
 type Group struct {
 	mu sync.Mutex
-	id uint32
-	status int32
-	agents map[*Agent]bool
+	id uint32		// group id
+	status int32	// group 状态
+	agents map[*Agent]bool // 组中所有的agent
 }
 
 func(group *Group)isClosed() bool {

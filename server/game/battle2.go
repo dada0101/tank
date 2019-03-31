@@ -1,5 +1,7 @@
 package game
-
+// 文件没有用到
+// this fie will to do for change the struct of rpc
+// TODO ALL
 import (
 	"TankDemo/network"
 	"TankDemo/proto2"

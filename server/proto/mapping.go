@@ -27,13 +27,17 @@ import (
 //			--- EnterRoom
 //			--- GetRoomInfo
 //			--- LeaveRoom
+//			--- Prepare
+//			--- Cancel
+//			--- Chat
+//			--- ChatName
 
 type (
 
 	MethodDescriptor struct {
-		name string
-		paramsType []reflect.Kind
-		method interface{}
+		name string					// 方法名
+		paramsType []reflect.Kind	// 参数类型
+		method interface{}			// 方法
 	}
 	NameMapping struct {
 		mapping map[string]*MethodDescriptor

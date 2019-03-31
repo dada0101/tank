@@ -45,13 +45,13 @@ func(bh *Beholder)Send(p *proto.ProtocolBytes) {
 
 type Room struct {
 	mu sync.Mutex
-	players [ROOM_SIZE]*Player
-	status int
-	playerCnt int
+	players [ROOM_SIZE]*Player	// 房间中的玩家
+	status int					// 房间状态
+	playerCnt int				// 玩家计数
 
 	chDie chan struct{}
-	group *network.Group
-	chatGroup *network.Group
+	group *network.Group		// 游戏组 广播数据
+	chatGroup *network.Group	// 聊天组 广播数据
 
 //	beholders map[*Beholder]bool
 }

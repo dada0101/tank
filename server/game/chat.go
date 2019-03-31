@@ -78,6 +78,7 @@ func ParseChatName(a *network.Agent, params []interface{}) (p *proto.ProtocolByt
 	name := params[0].(string)
 	player, ok := GetGLobby().FindPlayerByName(name)
 	if !ok {
+		GetGLobby().LoginChatChan(name, a)
 		<- a.ExtraChan
 	}
 	player, ok = GetGLobby().FindPlayerByName(name)
